@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¡Decora tu Calaverita de Azúcar! - Día de Muertos</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- jQuery CDN -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Rye (Festive Mexican Signage) & Fredoka (Friendly Sans) -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Rye&display=swap" rel="stylesheet">
+  <link rel="icon" href="https://i.ytimg.com/vi/hVj7ZDfgmmA/sddefault.jpg">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cempasuchil: '#FF5719',
+            gold: '#FFC107',
+            mictlan: '#1b1b2f',
+            papelPurple: '#8E24AA',
+            papelPink: '#E91E63',
+            papelCyan: '#00BCD4',
+          },
+          fontFamily: {
+            rye: ['Rye', 'serif'],
+            fredoka: ['Fredoka', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --orange: #FF5719;
+      --stroke-glow: rgba(255, 87, 25, 0.4);
+      --bg-color: #121216;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      font-family: 'Fredoka', sans-serif;
+      overflow-x: hidden;
+      color: #f3f4f6;
+    }
+
+    /* Papel Picado Banner Styling */
+    .papel-picado {
+      background: repeating-linear-gradient(
+        90deg,
+        #E91E63 0px, #E91E63 80px,
+        #FF5719 80px, #FF5719 160px,
+        #00BCD4 160px, #00BCD4 240px,
+        #8E24AA 240px, #8E24AA 320px,
+        #4CAF50 320px, #4CAF50 400px
+      );
+      clip-path: polygon(
+        0% 0%, 100% 0%, 100% 70%, 
+        95% 100%, 90% 70%, 85% 100%, 80% 70%, 75% 100%, 70% 70%, 65% 100%, 60% 70%,
+        55% 100%, 50% 70%, 45% 100%, 40% 70%, 35% 100%, 30% 70%, 25% 100%, 20% 70%,
+        15% 100%, 10% 70%, 5% 100%, 0% 70%
+      );
+    }
+
+    /* SVG Base & Path Styles */
+    #skull-svg {
+      max-height: 70vh;
+      width: auto;
+      margin: auto;
+      display: block;
+      filter: drop-shadow(0 0 12px var(--stroke-glow));
+      transition: filter 0.5s ease;
+    }
+
+    #skull-svg path {
+      fill: none;
+      stroke: var(--orange);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10;
+      transition: stroke 0.5s ease;
+    }
+
+    #skull-svg path.st1 {
+      stroke-width: 2;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1b1b2f;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #FF5719;
+      border-radius: 4px;
+    }
+
+    /* Glow animation for completed drawing */
+    .glow-active #skull-svg path {
+      animation: pulseGlow 2.5s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseGlow {
+      0% {
+        filter: drop-shadow(0 0 2px var(--orange));
+      }
+      100% {
+        filter: drop-shadow(0 0 8px var(--orange));
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center relative">
+
+  <!-- Background Animated Cempasúchil Petal Canvas -->
+  <canvas id="petal-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+  <!-- Papel Picado Top Banner -->
+  <header class="w-full relative z-10">
+    <div class="papel-picado h-12 w-full shadow-lg"></div>
+    <div class="text-center pt-4 pb-2 px-4">
+      <h1 class="font-rye text-3xl sm:text-5xl text-gold tracking-wide drop-shadow-[0_2px_10px_rgba(255,193,7,0.5)]">
+        ¡Día de Muertos!
+      </h1>
+      <p class="text-gray-300 text-sm sm:text-base mt-1">Animación de Trazo de Calaverita de Azúcar</p>
+    </div>
+  </header>
+
+  <!-- Main Display Container -->
+  <main class="w-full max-w-5xl px-4 flex flex-col items-center justify-center relative z-10 my-2">
+    
+    <!-- SVG Container -->
+    <div id="container" class="w-full flex justify-center items-center py-4 bg-mictlan/60 backdrop-blur-md rounded-3xl border border-gold/20 shadow-2xl relative overflow-hidden">
+      
+      <div id="loading-overlay" class="absolute inset-0 bg-mictlan/90 flex flex-col items-center justify-center z-20 transition-opacity duration-500">
+        <i class="fa-solid font-rye text-cempasuchil text-5xl animate-bounce mb-3">💀</i>
+        <p class="text-gold font-semibold text-lg">Preparando la ofrenda...</p>
+      </div>
+
+      <!-- User Provided SVG -->
+      <svg id="skull-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 612 792" class="p-2">
+        <g id="Layer_4">
+          <path class="st0" d="M301.2 352l-.4 80.2"/>
+          <path class="st0" d="M83.7 207.5c-1.5 10.4-2.3 21-2.3 31.9v-13.9c0-6.2.8-12.2 2.3-18z"/>
+          <path class="st0" d="M210.8 421.9v-1.1c0-10.2 8.2-18.4 18.4-18.4s18.4 8.2 18.4 18.4c0 9.8-7.7 17.9-17.4 18.4h-80.9"/>
+          <path class="st0" d="M181.9 422.6c0-7.9 6.4-14.4 14.4-14.4 7.9 0 14.4 6.4 14.4 14.4M276.1 365.9c0 21.2-17.1 38.3-38.3 38.3"/>
+          <path class="st0" d="M301.2 664.5h-63.7c-56.1 0-102-45.9-102-102V450c-37.6-2.4-67.7-33.9-67.7-72.1V239.4C67.8 110.5 172.3 6 301.2 6M301.6 664.5h63.7c56.1 0 102-45.9 102-102V450c37.6-2.4 67.7-33.9 67.7-72.1V239.4C534.9 110.5 430.5 6 301.6 6"/>
+          <path class="st0" d="M302.9 650.9h-55.6c-55.4 0-98.1-41.4-98.1-96.8V438.7c-35.5-3.9-67.8-29-67.8-65.4V239.4c0-10.8.8-21.5 2.3-31.9C99.1 103 192.8 17.6 301.6 17.6"/>
+          <path class="st0" d="M299.9 650.9h55.6c55.4 0 98.1-41.4 98.1-96.8V438.7c35.5-3.9 67.8-29 67.8-65.4V239.4c0-10.8-.8-21.5-2.3-31.9C503.7 103 408.7 17.6 299.9 17.6"/>
+          <path class="st0" d="M519.1 207.5c1.5 10.4 2.3 21 2.3 31.9v-13.9c0-6.2-.8-12.2-2.3-18z"/>
+          <path class="st0" d="M301.4 211.1v79.1M283 235.5h18.2M301.4 211.1v79.1M319.8 235.5h-18.2M284.5 37.7c0 8.8-7.2 16-16 16s-16-7.2-16-16"/>
+          <path class="st0" d="M252.9 40.9c1.2 16.1-8.5 31.5-24.5 36.9-18.9 6.3-39.3-3.8-45.7-22.7M318.3 37.7c0 8.8 7.2 16 16 16s16-7.2 16-16"/>
+          <path class="st0" d="M349.9 40.9c-1.2 16.1 8.5 31.5 24.5 36.9 18.9 6.3 39.3-3.8 45.7-22.7M282.5 650.9c0-10.3 8.4-18.7 18.7-18.7M291.8 615.2c0-5.2 4.2-9.4 9.4-9.4M256.1 650.3c.1-5.2 4.3-9.3 9.5-9.2M269.6 631.8c-3.6-3.7-3.5-9.6.2-13.2 3.7-3.6 9.6-3.5 13.2.2"/>
+          <path class="st0" d="M301.2 588.9c-9.7 0-17.7 7.4-18.6 16.8-7.3-6-18.2-5.6-25.1 1.2-6.9 6.9-7.3 17.8-1.2 25.2-9.5.8-17 8.8-17 18.6M274.1 650.9c0-15 12.1-27.1 27.1-27.1M320.3 650.9c0-10.3-8.4-18.7-18.7-18.7M310.9 615.2c0-5.2-4.2-9.4-9.4-9.4M346.7 650.3c-.1-5.2-4.3-9.3-9.5-9.2M333.2 631.8c3.6-3.7 3.5-9.6-.2-13.2-3.7-3.6-9.6-3.5-13.2.2"/>
+          <path class="st0" d="M363.6 650.8c0-9.8-7.5-17.8-17-18.6 6.1-7.4 5.7-18.3-1.2-25.2-6.9-6.8-17.7-7.2-25.1-1.2-1-9.5-8.9-16.8-18.6-16.8M328.7 650.9c0-15-12.1-27.1-27.1-27.1M139.8 92.3c8.5 3.9 13.1 13.5 10.5 22.8-2.9 10.3-13.6 16.3-23.9 13.4-4-1.1-7.3-3.4-9.8-6.4M159.2 83.4c4.7-2.6 10.6-.9 13.2 3.7 2.6 4.7.9 10.6-3.7 13.2M169.8 110.7c5.1 1.5 8.1 6.8 6.6 12-1.5 5.1-6.8 8.1-12 6.6M157.9 137.6c2.6 4.7.9 10.6-3.8 13.2s-10.6.9-13.2-3.8M130.5 148.1c-1.5 5.1-6.9 8.1-12 6.6s-8.1-6.9-6.6-12"/>
+          <path class="st0" d="M100 152.9c0 8.5 5.6 16.3 14.1 18.7 9.7 2.7 19.8-2.4 23.3-11.7 5.6 8.2 16.6 10.9 25.4 5.9 8.8-4.9 12.3-15.7 8.3-24.8 9.7 1.8 19.4-4.1 22.2-13.8 2.7-9.7-2.4-19.8-11.7-23.3 8.2-5.6 10.9-16.6 5.9-25.4-4.5-8-13.9-11.6-22.4-9.1"/>
+          <path class="st0" d="M146 85.8c10.6 6.3 16.1 19.2 12.6 31.7-4.2 14.9-19.7 23.6-34.6 19.4-4.8-1.3-8.9-3.9-12.2-7.1M463.2 93.1c-8.5 3.9-13.1 13.5-10.5 22.8 2.9 10.3 13.6 16.3 23.9 13.4 4-1.1 7.3-3.4 9.8-6.4M443.8 84.2c-4.7-2.6-10.6-.9-13.2 3.7s-.9 10.6 3.7 13.2M433.2 111.5c-5.1 1.5-8.1 6.8-6.6 12 1.5 5.1 6.8 8.1 12 6.6M445.1 138.3c-2.6 4.7-.9 10.6 3.8 13.2 4.7 2.6 10.6.9 13.2-3.8M472.5 148.9c1.5 5.1 6.9 8.1 12 6.6s8.1-6.9 6.6-12"/>
+          <path class="st0" d="M440.2 71.1c-9-4-19.8-.6-24.8 8.2-4.9 8.8-2.2 19.8 5.9 25.4-9.3 3.5-14.4 13.6-11.7 23.3 2.8 9.7 12.4 15.6 22.2 13.8-4 9-.6 19.8 8.3 24.8 8.8 4.9 19.8 2.2 25.4-5.9 3.5 9.2 13.6 14.4 23.3 11.7 8.6-2.4 14.1-10.2 14.1-18.7"/>
+          <path class="st0" d="M457 86.6c-10.6 6.3-16.1 19.2-12.6 31.7 4.2 14.9 19.7 23.6 34.6 19.4 4.8-1.3 8.9-3.9 12.2-7.1M91.1 405.6c2.8-1.8 6-2.8 9.6-2.9 10.3-.3 18.9 7.9 19.2 18.2.1 3-.6 5.9-1.8 8.4M91 385.9c-.1-5.2 4-9.5 9.2-9.6 5.2-.1 9.5 4 9.6 9.2M119.2 389.2c3.6-3.7 9.5-3.8 13.2-.3 3.7 3.6 3.8 9.5.3 13.2M136.8 411.4c5.2-.1 9.4 4 9.5 9.2.1 5.2-4 9.4-9.2 9.5"/>
+          <path class="st0" d="M150 438.2c7.8-2.4 13.4-9.8 13.2-18.4-.2-9.7-7.9-17.6-17.5-18.2 5.9-7.5 5.3-18.4-1.8-25.2-7.1-6.7-18-6.8-25.2-.5-1.1-9.5-9.3-16.8-19.1-16.5-9.8.3-17.6 7.9-18.2 17.5"/>
+          <path class="st0" d="M87.9 397.8c3.7-2.1 8-3.4 12.6-3.5 15-.4 27.4 11.4 27.8 26.4.1 4-.7 7.9-2.2 11.4M511.7 405.6c-2.8-1.8-6-2.8-9.6-2.9-10.3-.3-18.9 7.9-19.2 18.2-.1 3 .6 5.9 1.8 8.4M511.8 385.9c.1-5.2-4-9.5-9.2-9.6-5.2-.1-9.5 4-9.6 9.2M483.6 389.2c-3.6-3.7-9.5-3.8-13.2-.3-3.7 3.6-3.8 9.5-.3 13.2M466 411.4c-5.2-.1-9.4 4-9.5 9.2-.1 5.2-4 9.4 9.2 9.5"/>
+          <path class="st0" d="M521.4 377c-.6-9.6-8.4-17.2-18.2-17.5-9.8-.2-18 7-19.1 16.5-7.2-6.3-18.1-6.2-25.2.5-7.1 6.7-7.7 17.6-1.8 25.2-9.5.6-17.2 8.5-17.5 18.2-.2 8.6 5.4 15.9 13.2 18.4"/>
+          <path class="st0" d="M514.9 397.8c-3.7-2.1-8-3.4-12.6-3.5-15-.4-27.4 11.4-27.8 26.4-.1 4 .7 7.9 2.2 11.4"/>
+          <g>
+            <path class="st0" d="M86.1 193.8c.7-1.3 1.5-2.6 2.4-3.9 11.2-15.7 33.1-19.3 49-8 9.8 7 15 18.1 14.9 29.2M151.8 202.6c0-16.7 13.5-30.2 30.2-30.2s30.2 13.5 30.2 30.2"/>
+            <path class="st0" d="M119.4 231.9c10.5 0 19-8.5 19-19s-8.5-19-19-19-19 8.5-19 19v106.8s1 21.6-19 21.6M516.7 193.8c-.7-1.3-1.5-2.6-2.4-3.9-11.2-15.7-33.1-19.3-49-8-9.8 7-15 18.1-14.9 29.2M451 202.6c0-16.7-13.5-30.2-30.2-30.2s-30.2 13.5-30.2 30.2"/>
+            <path class="st0" d="M483.4 231.9c-10.5 0-19-8.5-19-19s8.5-19 19-19 19 8.5 19 19v106.8s-1 21.6 19 21.6"/>
+          </g>
+          <path class="st0" d="M392 421.9v-1.1c0-10.2-8.2-18.4-18.4-18.4s-18.4 8.2-18.4 18.4c0 9.8 7.7 17.9 17.4 18.4h80.9"/>
+          <path class="st0" d="M420.9 422.6c0-7.9-6.4-14.4-14.4-14.4s-14.4 6.4-14.4 14.4M326.7 365.9c0 21.2 17.1 38.3 38.3 38.3"/>
+          <g>
+            <path class="st0" d="M174.8 528.1v-19.2c0-15-11.1-27.6-25.4-29.9"/>
+            <path class="st0" d="M149.4 458.1c23.6 0 42.8 19.2 42.8 42.8 0 .8 0 1.6-.1 2.4v82.6M211.6 566.4c10.8 0 19.5 8.7 19.5 19.5s-8.7 19.5-19.5 19.5-19.5-8.7-19.5-19.5M174.8 529.5v59.4"/>
+            <path class="st0" d="M174.8 588.1c0 20.1 16.3 36.4 36.4 36.4s36.4-16.3 36.4-36.4v-19"/>
+            <path class="st0" d="M287 574.4c-2.8 7.8-10.3 13.4-19.1 13.4-11.2 0-20.3-9.1-20.3-20.3M149.2 441.4c34.8 0 63.1 28.2 63.1 63.1V540"/>
+          </g>
+          <g>
+            <path class="st0" d="M247.5 556.9c-2.2 3.1-7.1 5.3-13.2 5.3-12.2 0-22.1-9.9-22.1-22.1M210.8 489.9c0-12.2 9.9-22.1 22.1-22.1 6.1 0 7.8.7 12.4 3.8 0 0 14.6-14.3 28.9 0 0 0 11.2-15.8 27 0 0 0 11.5-15.9 27.4 0 0 0 12.8-16.1 28.9 0 0 0 6.3-3.8 12.4-3.8 12.2 0 22.1 9.9 22.1 22.1M248.4 556.3s11.5 14.3 25.8 0c0 0 11.2 15.8 27 0 0 0 11.5 15.9 27.4 0 0 0 10.5 16.8 26.7.6M355.3 556.9c2.2 3.1 7.1 5.3 13.2 5.3 12.2 0 22.1-9.9 22.1-22.1"/>
+            <path class="st0" d="M237.3 551.6h-6.2c-5.6 0-10.2-4.6-10.2-10.2v-52.6c0-5.6 4.6-10.2 10.2-10.2h6.2c5.6 0 10.2 4.6 10.2 10.2v52.6c0 5.6-4.6 10.2-10.2 10.2zM264 551.6h-6.2c-5.6 0-10.2-4.6-10.2-10.2v-52.6c0-5.6 4.6-10.2 10.2-10.2h6.2c5.6 0 10.2 4.6 10.2 10.2v52.6c0 5.6-4.6 10.2-10.2 10.2zM290.6 551.6h-6.2c-5.6 0-10.2-4.6-10.2-10.2v-52.6c0-5.6 4.6-10.2 10.2-10.2h6.2c5.6 0 10.2 4.6 10.2 10.2v52.6c.1 5.6-4.5 10.2-10.2 10.2zM301.4 514h-80.6M365.5 551.6h6.2c5.6 0 10.2-4.6 10.2-10.2v-52.6c0-5.6-4.6-10.2-10.2-10.2h-6.2c-5.6 0-10.2 4.6-10.2 10.2v52.6c0 5.6 4.6 10.2 10.2 10.2zM338.8 551.6h6.2c5.6 0 10.2-4.6 10.2-10.2v-52.6c0-5.6-4.6-10.2-10.2-10.2h-6.2c-5.6 0-10.2 4.6-10.2 10.2v52.6c0 5.6 4.6 10.2 10.2 10.2zM312.1 551.6h6.2c5.6 0 10.2-4.6 10.2-10.2v-52.6c0-5.6-4.6-10.2-10.2-10.2h-6.2c-5.6 0-10.2 4.6-10.2 10.2v52.6c0 5.6 4.6 10.2 10.2 10.2zM301.4 514H382"/>
+          </g>
+          <g>
+            <path class="st0" d="M301.2 158.3c-10.3 0-18.7-8.4-18.7-18.7 0-10.3 8.4-18.7 18.7-18.7M291.8 103.9c0-5.2 4.2-9.4 9.4-9.4M300.8 184.7c-5.2 0-9.3-4.3-9.3-9.4M282.2 171.3c-3.7 3.6-9.6 3.6-13.2-.1-3.6-3.7-3.6-9.6.1-13.2M265.4 148.5c-5.2-.1-9.3-4.3-9.2-9.5.1-5.2 4.3-9.3 9.5-9.2M339.6 148.5c5.2-.1 9.3-4.3 9.2-9.5-.1-5.2-4.3-9.3-9.5-9.2M269.6 120.5c-3.6-3.7-3.5-9.6.2-13.2 3.7-3.6 9.6-3.5 13.2.2"/>
+            <path class="st0" d="M301.2 77.7c-9.7 0-17.7 7.4-18.6 16.8-7.3-6-18.2-5.6-25.1 1.2-6.9 6.9-7.3 17.8-1.2 25.2-9.5.8-17 8.8-17 18.6s7.4 17.8 17 18.7c-6.1 7.3-5.8 18.3 1.1 25.2 6.9 6.9 17.8 7.3 25.2 1.2.9 9.5 8.9 17 18.6 17"/>
+            <path class="st0" d="M301.2 166.7c-15 0-27.1-12.1-27.1-27.1s12.1-27.1 27.1-27.1M301.2 55.7v12.8M289.2 221.4l1.9-12.6M271.6 216.8l4.5-11.9M255.4 208.5l7-10.6M241.4 196.9l9.1-8.9M230.2 182.5l10.9-6.6M222.5 166.1l12-4.2M218.5 148.3l12.6-1.4M218.4 130.1l12.7 1.4M222.3 112.3l12.1 4.1M230 95.8l10.9 6.6M241.1 81.4l9.2 8.8M255 69.7l7.1 10.6M271.2 61.3l4.6 11.9M288.8 56.6l1.9 12.6M301.6 158.3c10.3 0 18.7-8.4 18.7-18.7 0-10.3-8.4-18.7-18.7-18.7M310.9 103.9c0-5.2-4.2-9.4-9.4-9.4M302 184.7c5.2 0 9.3-4.3 9.3-9.4M320.6 171.3c3.7 3.6 9.6 3.6 13.2-.1 3.6-3.7 3.6-9.6-.1-13.2M333.2 120.5c3.6-3.7 3.5-9.6-.2-13.2-3.7-3.6-9.6-3.5-13.2.2"/>
+            <path class="st0" d="M301.7 201.6c9.8 0 17.8-7.5 18.6-17 7.4 6.1 18.3 5.7 25.2-1.2 6.9-6.9 7.3-17.9 1.1-25.2 9.5-.9 17-8.9 17-18.7 0-9.8-7.5-17.8-17-18.6 6.1-7.4 5.7-18.3-1.2-25.2-6.9-6.8-17.7-7.2-25.1-1.2-1-9.5-8.9-16.8-18.6-16.8"/>
+            <path class="st0" d="M301.6 166.7c15 0 27.1-12.1 27.1-27.1s-12.1-27.1-27.1-27.1M301.6 55.7v12.8M313.5 221.4l-1.8-12.6M331.2 216.8l-4.6-11.9M347.4 208.5l-7-10.6M361.4 196.9l-9.2-8.9M372.6 182.5l-10.9-6.6M380.3 166.1l-12-4.2M384.3 148.3l-12.6-1.4M384.4 130.1l-12.7 1.4M380.5 112.3l-12.1 4.1M372.8 95.8l-10.9 6.6M361.7 81.4l-9.2 8.8M347.8 69.7l-7.1 10.6M331.6 61.3L327 73.2M314 56.6l-1.9 12.6"/>
+          </g>
+          <g>
+            <path class="st0" d="M453.6 441.4c-34.8 0-63.1 28.2-63.1 63.1V540"/>
+            <path class="st0" d="M453.4 458.1c-23.6 0-42.8 19.2-42.8 42.8 0 .8 0 1.6.1 2.4v82.6M391.2 566.4c-10.8 0-19.5 8.7-19.5 19.5s8.7 19.5 19.5 19.5 19.5-8.7 19.5-19.5"/>
+            <path class="st0" d="M428 528.1v-19.2c0-15 11.1-27.6 25.4-29.9M428 529.5v59.4M428 588.1c0 20.1-16.3 36.4-36.4 36.4s-36.4-16.3-36.4-36.4v-19"/>
+          </g>
+          <path class="st0" d="M315.7 574.2c2.8 7.9 10.3 13.6 19.2 13.6 11.2 0 20.3-9.1 20.3-20.3"/>
+          <g>
+            <path class="st0" d="M300.8 432.9c0 9.5-7.7 17.2-17.2 17.2s-17.2-7.7-17.2-17.2l35-81.3M301.6 352l.4 80.2"/>
+            <path class="st0" d="M302 432.9c0 9.5 7.7 17.2 17.2 17.2s17.2-7.7 17.2-17.2l-35-81.3"/>
+          </g>
+          <g>
+            <path class="st0" d="M194.2 286.6l15.8 15.8M209.6 286.6l-15.8 15.8"/>
+            <circle class="st0" cx="201.9" cy="294.3" r="19.2"/>
+            <circle class="st0" cx="201.9" cy="294.3" r="28.8"/>
+            <path class="st0" d="M191 259.2c0-6 4.9-10.9 10.9-10.9s10.9 4.9 10.9 10.9M218.7 261.6c4.2-4.3 11.1-4.4 15.4-.2 4.3 4.2 4.4 11.1.2 15.4M236.8 282.7c6-.1 11 4.6 11.1 10.6s-4.6 11-10.6 11.1M235 310.5c4.4 4.1 4.6 11 .5 15.4s-11 4.6-15.4.5M214.3 329c.3 6-4.4 11.1-10.4 11.3s-11.1-4.4-11.3-10.4M186.5 327.8c-4 4.5-10.9 4.8-15.3.8-4.5-4-4.8-10.9-.8-15.3M167.5 307.5c-6 .4-11.2-4.1-11.6-10.1s4.1-11.2 10.1-11.6M168.1 279.7c-4.6-3.9-5.1-10.8-1.2-15.3 3.9-4.6 10.8-5.1 15.3-1.2"/>
+            <circle class="st0" cx="201.9" cy="294.3" r="55.5"/>
+            <path class="st0" d="M210.5 221.8c0 5.3-4.3 9.7-9.7 9.7-5.3 0-9.7-4.3-9.7-9.7 0-5.3 9.7-19.3 9.7-19.3s9.7 14 9.7 19.3zM239 231.5c-2.2 4.9-7.9 7.1-12.8 5-4.9-2.2-7.1-7.9-5-12.8s16.6-13.7 16.6-13.7 3.4 16.6 1.2 21.5zM261.3 251.8c-3.9 3.6-10.1 3.3-13.7-.6-3.6-3.9-3.3-10.1.6-13.7 3.9-3.6 20.8-5.8 20.8-5.8s-3.8 16.5-7.7 20.1zM273.4 279.4c-5.1 1.7-10.6-1-12.3-6.1s1-10.6 6.1-12.3c5.1-1.7 21.3 3 21.3 3s-10.1 13.7-15.1 15.4zM273.3 309.5c-5.3-.5-9.3-5.2-8.8-10.5s5.2-9.3 10.5-8.8 18.3 11.4 18.3 11.4-14.6 8.4-20 7.9zM261.2 337c-4.7-2.6-6.4-8.5-3.8-13.2 2.6-4.7 8.5-6.4 13.2-3.8s12.1 17.8 12.1 17.8-16.9 1.8-21.5-.8zM238.9 357.3c-3.2-4.3-2.4-10.3 1.9-13.6 4.3-3.2 10.3-2.4 13.6 1.9 3.2 4.3 3.9 21.2 3.9 21.2s-16.2-5.2-19.4-9.5zM210.3 366.9c-1.2-5.2 2-10.4 7.2-11.7 5.2-1.2 10.4 2 11.7 7.2 1.2 5.2-5 21-5 21s-12.6-11.3-13.9-16.5zM180.3 364.1c1-5.3 6-8.7 11.3-7.8s8.7 6 7.8 11.3c-1 5.3-13 17.2-13 17.2s-7-15.4-6.1-20.7zM154 349.5c3-4.4 9-5.6 13.5-2.6 4.4 3 5.6 9 2.6 13.5-3 4.4-18.8 10.5-18.8 10.5s-.3-17 2.7-21.4zM135.8 325.5c4.5-2.8 10.5-1.5 13.3 3.1 2.8 4.5 1.5 10.5-3.1 13.3-4.5 2.8-21.5 2-21.5 2s6.8-15.6 11.3-18.4zM128.9 296.2c5.3-.8 10.2 2.9 11 8.2.8 5.3-2.9 10.2-8.2 11-5.3.8-20.4-6.8-20.4-6.8s12.3-11.7 17.6-12.4zM134.4 266.5c5.2 1.4 8.2 6.8 6.7 11.9s-6.8 8.2-11.9 6.7c-5.2-1.4-15.9-14.5-15.9-14.5s15.9-5.5 21.1-4.1zM151.3 241.7c4.1 3.4 4.7 9.5 1.3 13.6-3.4 4.1-9.5 4.7-13.6 1.3-4.1-3.4-8.7-19.7-8.7-19.7s16.9 1.4 21 4.8zM176.9 225.7c2.4 4.8.5 10.6-4.3 13-4.8 2.4-10.6.5-13-4.3s0-21.6 0-21.6 14.9 8.2 17.3 12.9z"/>
+            <g>
+              <path class="st0" d="M408.6 286.6l-15.8 15.8M393.2 286.6l15.8 15.8"/>
+              <circle class="st0" cx="400.9" cy="294.3" r="19.2"/>
+              <circle class="st0" cx="400.9" cy="294.3" r="28.8"/>
+              <path class="st0" d="M411.8 259.2c0-6-4.9-10.9-10.9-10.9s-10.9 4.9-10.9 10.9M384.1 261.6c-4.2-4.3-11.1-4.4-15.4-.2-4.3 4.2-4.4 11.1-.2 15.4M366 282.7c-6-.1-11 4.6-11.1 10.6-.1 6 4.6 11 10.6 11.1M367.8 310.5c-4.4 4.1-4.6 11-.5 15.4s11 4.6 15.4.5M388.5 329c-.3 6 4.4 11.1 10.4 11.3 6 .3 11.1-4.4 11.3-10.4M416.3 327.8c4 4.5 10.9 4.8 15.3.8 4.5-4 4.8-10.9.8-15.3M435.3 307.5c6 .4 11.2-4.1 11.6-10.1s-4.1-11.2-10.1-11.6M434.7 279.7c4.6-3.9 5.1-10.8 1.2-15.3s-10.8-5.1-15.3-1.2"/>
+              <circle class="st0" cx="400.9" cy="294.3" r="55.5"/>
+              <path class="st0" d="M392.3 221.8c0 5.3 4.3 9.7 9.7 9.7s9.7-4.3 9.7-9.7c0-5.3-9.7-19.3-9.7-19.3s-9.7 14-9.7 19.3zM363.7 231.5c2.2 4.9 7.9 7.1 12.8 5 4.9-2.2 7.1-7.9 5-12.8-2.2-4.9-16.6-13.7-16.6-13.7s-3.3 16.6-1.2 21.5zM341.5 251.8c3.9 3.6 10.1 3.3 13.7-.6 3.6-3.9 3.3-10.1-.6-13.7-3.9-3.6-20.8-5.8-20.8-5.8s3.8 16.5 7.7 20.1zM329.4 279.4c5.1 1.7 10.6-1 12.3-6.1s-1-10.6-6.1-12.3-21.3 3-21.3 3 10 13.7 15.1 15.4zM329.5 309.5c5.3-.5 9.3-5.2 8.8-10.5s-5.2-9.3-10.5-8.8-18.3 11.4-18.3 11.4 14.6 8.4 20 7.9zM341.6 337c4.7-2.6 6.4-8.5 3.8-13.2-2.6-4.7-8.5-6.4-13.2-3.8s-12.1 17.8-12.1 17.8 16.9 1.8 21.5-.8zM363.9 357.3c3.2-4.3 2.4-10.3-1.9-13.6-4.3-3.2-10.3-2.4-13.6 1.9-3.2 4.3-3.9 21.2-3.9 21.2s16.2-5.2 19.4-9.5zM392.5 366.9c1.2-5.2-2-10.4-7.2-11.7-5.2-1.2-10.4 2-11.7 7.2-1.2 5.2 5 21 5 21s12.6-11.3 13.9-16.5zM422.5 364.1c-1-5.3-6-8.7-11.3-7.8-5.3 1-8.7 6-7.8 11.3 1 5.3 13 17.2 13 17.2s7-15.4 6.1-20.7zM448.8 349.5c-3-4.4-9-5.6-13.5-2.6-4.4 3-5.6 9-2.6 13.5 3 4.4 18.8 10.5 18.8 10.5s.3-17-2.7-21.4zM466.9 325.5c-4.5-2.8-10.5-1.5-13.3 3.1-2.8 4.5-1.5 10.5 3.1 13.3 4.5 2.8 21.5 2 21.5 2s-6.7-15.6-11.3-18.4zM473.9 296.2c-5.3-.8-10.2 2.9-11 8.2-.8 5.3 2.9 10.2 8.2 11 5.3.8 20.4-6.8 20.4-6.8s-12.3-11.7-17.6-12.4zM468.4 266.5c-5.2 1.4-8.2 6.8-6.7 11.9 1.4 5.2 6.8 8.2 11.9 6.7 5.2-1.4 15.9-14.5 15.9-14.5s-15.9-5.5-21.1-4.1zM451.5 241.7c-4.1 3.4-4.7 9.5-1.3 13.6 3.4 4.1 9.5 4.7 13.6 1.3 4.1-3.4 8.7-19.7 8.7-19.7s-16.9 1.4-21 4.8zM425.9 225.7c-2.4 4.8-.5 10.6 4.3 13 4.8 2.4 10.6.5 13-4.3 2.4-4.8 0-21.6 0-21.6s-14.9 8.2-17.3 12.9z"/>
+            </g>
+          </g>
+          
+        </g>
+      </svg>
+    </div>
+
+    <!-- Control Panel Dashboard -->
+    <div class="w-full mt-4 bg-mictlan/80 backdrop-blur-md p-4 rounded-2xl border border-gold/30 shadow-xl flex flex-wrap gap-4 items-center justify-between">
+      
+      <!-- Primary Re-draw Action -->
+      <button id="draw-btn" class="bg-gradient-to-r from-cempasuchil to-gold hover:from-gold hover:to-cempasuchil text-mictlan font-bold px-6 py-3 rounded-xl shadow-lg transform active:scale-95 transition duration-200 flex items-center gap-2">
+    
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>¡DIBUJAR CALAVERITA!</span>
+        
+      </button>
+
+      <button id="draw-btn" class="bg-gradient-to-r from-cempasuchil to-gold hover:from-gold hover:to-cempasuchil text-mictlan font-bold px-6 py-3 rounded-xl shadow-lg transform active:scale-95 transition duration-200 flex items-center gap-2">
+       <a href="index.html">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>REGRESAR</span>
+        </a>
+      </button>
+
+      <!-- Speed Selector -->
+      <div class="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-gray-700">
+        <span class="text-xs text-gray-400 font-semibold uppercase"><i class="fa-solid fa-gauge-high mr-1"></i>Velocidad:</span>
+        <button class="speed-btn px-2.5 py-1 text-xs rounded-lg bg-cempasuchil text-white font-medium" data-speed="25">Normal</button>
+        <button class="speed-btn px-2.5 py-1 text-xs rounded-lg hover:bg-gray-700 text-gray-300 font-medium" data-speed="10">Rápido</button>
+        <button class="speed-btn px-2.5 py-1 text-xs rounded-lg hover:bg-gray-700 text-gray-300 font-medium" data-speed="60">Lento</button>
+      </div>
+
+      <!-- Color Theme Preset -->
+      <div class="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-gray-700">
+        <span class="text-xs text-gray-400 font-semibold uppercase"><i class="fa-solid fa-palette mr-1"></i>Estilo:</span>
+        <button class="theme-btn w-6 h-6 rounded-full bg-[#FF5719] border-2 border-white focus:outline-none shadow" data-theme="tradicional" title="Tradicional Cempasúchil"></button>
+        <button class="theme-btn w-6 h-6 rounded-full bg-[#E91E63] border-2 border-transparent hover:border-white focus:outline-none shadow" data-theme="neon" title="Neón Místico"></button>
+        <button class="theme-btn w-6 h-6 rounded-full bg-[#9C27B0] border-2 border-transparent hover:border-white focus:outline-none shadow" data-theme="noche" title="Noche de Muertos"></button>
+      </div>
+
+      <!-- Sound FX Toggle -->
+    <!-- Control Panel Dashboard -->
+    <div class="w-full mt-4 bg-mictlan/80 backdrop-blur-md p-4 rounded-2xl border border-gold/30 shadow-xl flex flex-wrap gap-4 items-center justify-between">
+      
+      <!-- Primary Re-draw Action -->
+      <button id="draw-btn" class="bg-gradient-to-r from-cempasuchil to-gold hover:from-gold hover:to-cempasuchil text-mictlan font-bold px-6 py-3 rounded-xl shadow-lg transform active:scale-95 transition duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>¡DIBUJAR CALAVERITA!</span>
+      </button>
+
+      <!-- Palette Combinations Selector -->
+      <div class="flex flex-col gap-1 bg-black/40 px-3 py-2 rounded-xl border border-gray-700">
+        <span class="text-xs text-gold font-semibold uppercase flex items-center gap-1">
+          <i class="fa-solid fa-palette"></i> Combinación de Colores:
+        </span>
+        <div class="flex flex-wrap gap-1.5 mt-1">
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gold/50 bg-gold/20 text-gold font-medium hover:bg-gold/30 transition" data-palette="cempasuchil" title="Naranja, Amarillo, Rosa Mexicano y Morado">
+            🌼 Cempasúchil & Papel Picado
+          </button>
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="alebrije" title="Cian, Magenta, Verde Neón y Amarillo">
+            🦎 Alebrije Neón
+          </button>
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="catrina" title="Dorado, Carmín, Blanco y Negro">
+            👑 Catrina Elegante
+          </button>
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="noche" title="Morado, Azul Noche, Naranja y Dorado">
+            🌙 Noche de Muertos
+          </button>
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="terciopelo" title="Magenta Profundo, Púrpura y Turquesa">
+            🌺 Flor de Terciopelo
+          </button>
+        </div>
+      </div>
+
+      <!-- Coloring Mode & Custom Color Picker Controls -->
+      <div class="flex items-center gap-3 bg-black/40 px-3 py-2 rounded-xl border border-gray-700">
+        <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-300 select-none">
+          <input type="checkbox" id="multicolor-mode" checked class="accent-cempasuchil w-4 h-4 rounded">
+          <span>Colorear por Secciones</span>
+        </label>
+        
+        <div class="h-4 w-px bg-gray-700"></div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-400">Trazo:</span>
+          <input type="color" id="custom-stroke-color" value="#FF5719" class="w-7 h-7 rounded border-0 bg-transparent cursor-pointer shadow">
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-400">Glow:</span>
+          <button id="glow-toggle-btn" class="text-xs px-2 py-1 rounded bg-cempasuchil text-white font-medium">ON</button>
+        </div>
+      </div>
+
+      <!-- Speed Selector -->
+      <div class="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-gray-700">
+        <span class="text-xs text-gray-400 font-semibold uppercase"><i class="fa-solid fa-gauge-high mr-1"></i>Velocidad:</span>
+        <button class="speed-btn px-2.5 py-1 text-xs rounded-lg bg-cempasuchil text-white font-medium" data-speed="25">Normal</button>
+        <button class="speed-btn px-2.5 py-1 text-xs rounded-lg hover:bg-gray-700 text-gray-300 font-medium" data-speed="10">Rápido</button>
+        <button class="speed-btn px-2.5 py-1 text-xs rounded-lg hover:bg-gray-700 text-gray-300 font-medium" data-speed="60">Lento</button>
+      </div>
+
+      <!-- Sound FX Toggle -->
+      <button id="sound-btn" class="bg-black/40 hover:bg-black/60 text-gray-300 px-3 py-2 rounded-xl border border-gray-700 transition flex items-center gap-2 text-sm">
+        <i class="fa-solid fa-volume-xmark text-cempasuchil"></i>
+        <span>Música/Efectos</span>
+      </button>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full text-center py-3 text-xs text-gray-400 z-10">
+    <p>Celebrando las tradiciones de México • Día de Muertos</p>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // Audio Context Synthesizer for Festive Chimes
+    class SoundSynth {
+      constructor() {
+        this.ctx = null;
+        this.enabled = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+      }
+
+      playChime(freq, duration = 0.15) {
+        if (!this.enabled || !this.ctx) return;
+        
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          console.log("Audio play suppressed");
+        }
+      }
+
+      playCompletionSound() {
+        if (!this.enabled || !this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, idx) => {
+          setTimeout(() => this.playChime(freq, 0.4), idx * 120);
+        });
+      }
+    }
+
+    const sound = new SoundSynth();
+
+    // SVG Element Conversion Functions (Converts basic shapes to printable <path> tags)
+    function SVG(tag) {
+      return document.createElementNS('http://www.w3.org/2000/svg', tag);
+    }
+
+    function replaceRectsWithPaths(parentElement) {
+      $(parentElement).find('rect').each(function() {
+        const x = parseFloat($(this).attr('x') || 0);
+        const y = parseFloat($(this).attr('y') || 0);
+        const w = parseFloat($(this).attr('width') || 0);
+        const h = parseFloat($(this).attr('height') || 0);
+        const d = `M${x},${y} L${x + w},${y} L${x + w},${y + h} L${x},${y + h} Z`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replaceLinesWithPaths(parentElement) {
+      $(parentElement).find('line').each(function() {
+        const x1 = $(this).attr('x1') || 0;
+        const y1 = $(this).attr('y1') || 0;
+        const x2 = $(this).attr('x2') || 0;
+        const y2 = $(this).attr('y2') || 0;
+        const d = `M${x1},${y1} L${x2},${y2}`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replaceCirclesWithPaths(parentElement) {
+      $(parentElement).find('circle').each(function() {
+        const cx = parseFloat($(this).attr('cx') || 0);
+        const cy = parseFloat($(this).attr('cy') || 0);
+        const r = parseFloat($(this).attr('r') || 0);
+        const r2 = r * 2;
+        const d = `M ${cx}, ${cy} m ${-r}, 0 a ${r},${r} 0 1,0 ${r2},0 a ${r},${r} 0 1,0 ${-r2},0`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replaceEllipsesWithPaths(parentElement) {
+      $(parentElement).find('ellipse').each(function() {
+        const cx = parseFloat($(this).attr('cx') || 0);
+        const cy = parseFloat($(this).attr('cy') || 0);
+        const rx = parseFloat($(this).attr('rx') || 0);
+        const ry = parseFloat($(this).attr('ry') || 0);
+        const d = `M ${cx}, ${cy} m ${-rx}, 0 a ${rx},${ry} 0 1,0 ${rx * 2},0 a ${rx},${ry} 0 1,0 ${-rx * 2},0`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replacePolygonsWithPaths(parentElement) {
+      $(parentElement).find('polygon').each(function() {
+        const points = $(this).attr('points');
+        if (points) {
+          const polyPoints = points.trim().split(/[ ,]+/);
+          const endPoint = `${polyPoints[0]},${polyPoints[1]}`;
+          const d = `M ${points} Z`;
+
+          $(SVG('path'))
+            .attr('d', d)
+            .attr('class', $(this).attr('class') || '')
+            .insertAfter(this);
+        }
+        $(this).remove();
+      });
+    }
+
+    function replacePolylinesWithPaths(parentElement) {
+      $(parentElement).find('polyline').each(function() {
+        const points = $(this).attr('points');
+        if (points) {
+          const d = `M ${points}`;
+          $(SVG('path'))
+            .attr('d', d)
+            .attr('class', $(this).attr('class') || '')
+            .insertAfter(this);
+        }
+        $(this).remove();
+      });
+    }
+
+    function convertAllToPaths(svgElement) {
+      replaceRectsWithPaths(svgElement);
+      replaceLinesWithPaths(svgElement);
+      replaceEllipsesWithPaths(svgElement);
+      replaceCirclesWithPaths(svgElement);
+      replacePolygonsWithPaths(svgElement);
+      replacePolylinesWithPaths(svgElement);
+    }
+
+    // Color Palette Definitions
+    const PALETTES = {
+      cempasuchil: {
+        name: 'Cempasúchil & Papel Picado',
+        bg: '#121216',
+        colors: ['#FF5719', '#FFC107', '#E91E63', '#9C27B0', '#00BCD4']
+      },
+      alebrije: {
+        name: 'Alebrije Neón',
+        bg: '#0a0a14',
+        colors: ['#00E5FF', '#FF007F', '#76FF03', '#FFEA00', '#D500F9']
+      },
+      catrina: {
+        name: 'Catrina Elegante',
+        bg: '#141113',
+        colors: ['#FFD700', '#DC143C', '#FFFFFF', '#C0C0C0', '#FFA500']
+      },
+      noche: {
+        name: 'Noche de Muertos',
+        bg: '#080811',
+        colors: ['#AB47BC', '#1E88E5', '#FF9800', '#FFD54F', '#26A69A']
+      },
+      terciopelo: {
+        name: 'Flor de Terciopelo',
+        bg: '#120813',
+        colors: ['#C2185B', '#7B1FA2', '#00ACC1', '#FFB300', '#E91E63']
+      }
+    };
+
+    let activePaletteKey = 'cempasuchil';
+    let isMulticolorMode = true;
+    let isGlowEnabled = true;
+
+    // SVG Path Animation Engine
+    let activeAnimationId = null;
+    let animationSpeed = 25; // Delay multiplier
+
+    function applyPathColors(paths) {
+      const palette = PALETTES[activePaletteKey].colors;
+      const customColor = $('#custom-stroke-color').val();
+
+      paths.forEach((path, idx) => {
+        if (isMulticolorMode) {
+          // Color assignment by SVG group index / layer type
+          const colorIndex = idx % palette.length;
+          path.style.stroke = palette[colorIndex];
+        } else {
+          path.style.stroke = customColor;
+        }
+      });
+
+      // Update background and glow parameters
+      const mainColor = isMulticolorMode ? palette[0] : customColor;
+      document.documentElement.style.setProperty('--orange', mainColor);
+      document.documentElement.style.setProperty('--stroke-glow', mainColor + '66');
+      document.documentElement.style.setProperty('--bg-color', PALETTES[activePaletteKey].bg);
+    }
+
+    function drawSVGPaths(parentElement, timeDelay) {
+      if (activeAnimationId) {
+        cancelAnimationFrame(activeAnimationId);
+      }
+
+      const paths = $(parentElement).find('path').get();
+      $('#container').removeClass('glow-active');
+
+      // Apply Palette/Multicolor settings to stroke attributes
+      applyPathColors(paths);
+
+      // Initialize all paths as invisible (dasharray offset)
+      paths.forEach((path) => {
+        const length = path.getTotalLength();
+        path.style.strokeDasharray = `${length} ${length}`;
+        path.style.strokeDashoffset = length;
+        path.dataset.length = length;
+      });
+
+      let currentPathIndex = 0;
+      let startTime = null;
+      let pathDuration = Math.max(150, timeDelay * 8);
+
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+
+        if (currentPathIndex < paths.length) {
+          const path = paths[currentPathIndex];
+          const length = parseFloat(path.dataset.length);
+
+          if (length === 0) {
+            currentPathIndex++;
+            startTime = timestamp;
+            activeAnimationId = requestAnimationFrame(step);
+            return;
+          }
+
+          // EaseInOutQuad
+          let progress = elapsed / pathDuration;
+          if (progress > 1) progress = 1;
+
+          let easeProgress = progress < 0.5 
+            ? 2 * progress * progress 
+            : -1 + (4 - 2 * progress) * progress;
+
+          const currentOffset = length * (1 - easeProgress);
+          path.style.strokeDashoffset = currentOffset;
+
+          if (progress < 1) {
+            activeAnimationId = requestAnimationFrame(step);
+          } else {
+            // Path complete, play sound chime
+            if (currentPathIndex % 4 === 0) {
+              sound.playChime(300 + (currentPathIndex * 3) % 400);
+            }
+
+            currentPathIndex++;
+            startTime = timestamp;
+            activeAnimationId = requestAnimationFrame(step);
+          }
+        } else {
+          // Entire skull completed!
+          if (isGlowEnabled) {
+            $('#container').addClass('glow-active');
+          }
+          sound.playCompletionSound();
+        }
+      }
+
+      activeAnimationId = requestAnimationFrame(step);
+    }
+
+    // Floating Petals Background Animation
+    function initPetalCanvas() {
+      const canvas = document.getElementById('petal-canvas');
+      const ctx = canvas.getContext('2d');
+
+      let width = (canvas.width = window.innerWidth);
+      let height = (canvas.height = window.innerHeight);
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      const petals = Array.from({ length: 30 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height - height,
+        size: Math.random() * 8 + 4,
+        speedY: Math.random() * 1.5 + 0.5,
+        speedX: Math.random() * 1 - 0.5,
+        angle: Math.random() * Math.PI * 2,
+        color: Math.random() > 0.3 ? '#FF5719' : '#FFC107'
+      }));
+
+      function render() {
+        ctx.clearRect(0, 0, width, height);
+
+        petals.forEach((p) => {
+          p.y += p.speedY;
+          p.x += Math.sin(p.angle) * 0.8;
+          p.angle += 0.02;
+
+          if (p.y > height) {
+            p.y = -20;
+            p.x = Math.random() * width;
+          }
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle);
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.size, p.size / 2, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+
+        requestAnimationFrame(render);
+      }
+
+      render();
+    }
+
+    // UI Event Handlers & Initialization
+    $(document).ready(function() {
+      const $svg = $('#skull-svg');
+
+      // Convert shapes to paths
+      convertAllToPaths($svg);
+
+      // Hide loading screen & start initial drawing
+      setTimeout(() => {
+        $('#loading-overlay').addClass('opacity-0 pointer-events-none');
+        drawSVGPaths($svg, animationSpeed);
+      }, 500);
+
+      // Initialize background particles
+      initPetalCanvas();
+
+      // Trigger redraw button click
+      $('#draw-btn').on('click', function() {
+        sound.init();
+        drawSVGPaths($svg, animationSpeed);
+      });
+
+      // Speed selection handler
+      $('.speed-btn').on('click', function() {
+        $('.speed-btn')
+          .removeClass('bg-cempasuchil text-white')
+          .addClass('hover:bg-gray-700 text-gray-300');
+
+        $(this)
+          .addClass('bg-cempasuchil text-white')
+          .removeClass('hover:bg-gray-700 text-gray-300');
+
+        animationSpeed = parseInt($(this).data('speed'));
+        drawSVGPaths($svg, animationSpeed);
+      });
+
+      // Palette Selection Event Handler
+      $('.palette-btn').on('click', function() {
+        $('.palette-btn')
+          .removeClass('border-gold/50 bg-gold/20 text-gold')
+          .addClass('border-gray-700 text-gray-300');
+
+        $(this)
+          .addClass('border-gold/50 bg-gold/20 text-gold')
+          .removeClass('border-gray-700 text-gray-300');
+
+        activePaletteKey = $(this).data('palette');
+        drawSVGPaths($svg, animationSpeed);
+      });
+
+      // Multicolor Checkbox Toggle
+      $('#multicolor-mode').on('change', function() {
+        isMulticolorMode = $(this).is(':checked');
+        drawSVGPaths($svg, animationSpeed);
+      });
+
+      // Custom Color Picker input
+      $('#custom-stroke-color').on('input', function() {
+        if (!isMulticolorMode) {
+          drawSVGPaths($svg, animationSpeed);
+        }
+      });
+
+      // Glow Effect Toggle
+      $('#glow-toggle-btn').on('click', function() {
+        isGlowEnabled = !isGlowEnabled;
+        if (isGlowEnabled) {
+          $(this).removeClass('bg-gray-700').addClass('bg-cempasuchil').text('ON');
+          $('#container').addClass('glow-active');
+        } else {
+          $(this).removeClass('bg-cempasuchil').addClass('bg-gray-700').text('OFF');
+          $('#container').removeClass('glow-active');
+        }
+      });
+
+      // Sound toggle button
+      $('#sound-btn').on('click', function() {
+        sound.init();
+        sound.enabled = !sound.enabled;
+
+        const $icon = $(this).find('i');
+        const $span = $(this).find('span');
+
+        if (sound.enabled) {
+          $icon.removeClass('fa-volume-xmark').addClass('fa-volume-high text-gold');
+          $span.text('Audio Activado');
+          sound.playChime(523.25, 0.2);
+        } else {
+          $icon.removeClass('fa-volume-high text-gold').addClass('fa-volume-xmark text-cempasuchil');
+          $span.text('Música/Efectos');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

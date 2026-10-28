@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¡Día de Muertos! - Animaciones de Trazo Tradicionales</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- jQuery CDN -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Rye & Fredoka -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Rye&display=swap" rel="stylesheet">
+<link rel="icon" href="https://content-viajes.nationalgeographic.com.es/medio/2025/10/07/esposos-en-el-desfile-de-dia-de-muertos-en-ciudad-de-mexic_00000000_b82bb494_251007165613_1200x830.webp">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            panGold: '#E6A15C',
+            azucarWhite: '#FFF9E6',
+            cempasuchil: '#FF5719',
+            gold: '#FFC107',
+            mictlan: '#1b1822',
+            papelPurple: '#8E24AA',
+            papelPink: '#E91E63',
+            papelCyan: '#00BCD4',
+          },
+          fontFamily: {
+            rye: ['Rye', 'serif'],
+            fredoka: ['Fredoka', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --orange: #FF5719;
+      --stroke-glow: rgba(255, 87, 25, 0.5);
+      --bg-color: #120b18; /* Fondo Morado Noche de Muertos */
+    }
+
+    body {
+      background-color: var(--bg-color);
+      font-family: 'Fredoka', sans-serif;
+      overflow-x: hidden;
+      color: #f3f4f6;
+    }
+
+    /* Papel Picado Banner Styling */
+    .papel-picado {
+      background: repeating-linear-gradient(
+        90deg,
+        #E91E63 0px, #E91E63 80px,
+        #FF5719 80px, #FF5719 160px,
+        #00BCD4 160px, #00BCD4 240px,
+        #8E24AA 240px, #8E24AA 320px,
+        #4CAF50 320px, #4CAF50 400px
+      );
+      clip-path: polygon(
+        0% 0%, 100% 0%, 100% 70%, 
+        95% 100%, 90% 70%, 85% 100%, 80% 70%, 75% 100%, 70% 70%, 65% 100%, 60% 70%,
+        55% 100%, 50% 70%, 45% 100%, 40% 70%, 35% 100%, 30% 70%, 25% 100%, 20% 70%,
+        15% 100%, 10% 70%, 5% 100%, 0% 70%
+      );
+    }
+
+    /* SVG Base & Path Styles */
+    .drawing-svg {
+      max-height: 55vh;
+      width: auto;
+      margin: auto;
+      display: block;
+      filter: drop-shadow(0 0 14px var(--stroke-glow));
+      transition: filter 0.5s ease;
+    }
+
+    .drawing-svg path {
+      fill: none;
+      stroke: var(--orange);
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10;
+      transition: stroke 0.5s ease;
+    }
+
+    .drawing-svg path.st-detail {
+      stroke-width: 2.2;
+    }
+
+    .drawing-svg path.st-fine {
+      stroke-width: 1.5;
+      stroke-dasharray: 2 4;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1b1822;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #FF5719;
+      border-radius: 4px;
+    }
+
+    /* Glow animation for completed drawing */
+    .glow-active .drawing-svg path {
+      animation: pulseGlow 2.5s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseGlow {
+      0% { filter: drop-shadow(0 0 2px var(--orange)); }
+      100% { filter: drop-shadow(0 0 12px var(--orange)); }
+    }
+
+    /* Selection Card Hover Effects */
+    .card-select {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card-select:hover {
+      transform: translateY(-8px) scale(1.03);
+      box-shadow: 0 14px 28px rgba(255, 87, 25, 0.45);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center relative bg-[#120b18]">
+
+  <!-- Canvas Lluvia de Pétalos de Cempasúchil sobre Fondo Morado -->
+  <canvas id="petal-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-70"></canvas>
+
+  <!-- Papel Picado Encabezado Superior -->
+  <header class="w-full relative z-10">
+    <div class="papel-picado h-12 w-full shadow-lg"></div>
+    <div class="text-center pt-3 pb-1 px-4">
+      <h1 class="font-rye text-3xl sm:text-5xl text-gold tracking-wide drop-shadow-[0_2px_12px_rgba(255,193,7,0.6)]">
+        ¡Feliz Día de Muertos!
+      </h1>
+      <!-- Navegación entre Páginas -->
+      <nav class="flex justify-center gap-2 sm:gap-4 mt-3">
+        <button class="page-nav-btn active-page bg-cempasuchil text-white px-4 sm:px-6 py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-md hover:scale-105 transition" data-page="inicio">
+          🏠 Inicio
+        </button>
+        
+        <button id="sound-toggle-header" class="bg-black/50 border border-gold/40 text-gold px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold hover:bg-gold/20 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-volume-high"></i>
+          <span>Sonido</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- PÁGINA DE INICIO (HOME) - MENÚ CON LOS 3 BOTONES PRINCIPALES -->
+  <div id="page-inicio" class="page-content w-full max-w-5xl px-4 my-auto py-6 z-10 flex flex-col items-center justify-center text-center">
+    
+    <!-- Banner de Bienvenida -->
+    <div class="bg-mictlan/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-gold/40 shadow-2xl mb-8 max-w-3xl">
+      <span class="text-5xl sm:text-6xl mb-3 block animate-bounce">💀 🌼 🕯️</span>
+      <h2 class="font-rye text-2xl sm:text-4xl text-gold mb-3 drop-shadow-md">
+        Selecciona una Ilustración para Animar
+      </h2>
+      <p class="text-xs sm:text-base text-gray-300 max-w-xl mx-auto">
+        Disfruta de la lluvia de pétalos de cempasúchil, sonido tradicional y la animación de trazos vectoriales en vivo.
+      </p>
+    </div>
+
+    <!-- TRES BOTONES PRINCIPALES EN MODO MENÚ DE INICIO -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-4xl px-2">
+      
+      <!-- Botón 1: Calaverita -->
+      <a href="Calavera.html" class="card-select bg-gradient-to-br from-papelPink/40 via-mictlan/90 to-black/80 border-2 border-papelPink p-6 rounded-3xl flex flex-col items-center justify-center text-center group">
+        <span class="text-5xl sm:text-6xl mb-3 group-hover:scale-110 transition-transform">💀</span>
+        <span class="font-rye text-xl text-gold mb-1">Calaverita</span>
+        <span class="text-xs text-gray-300 mb-4">Azúcar, Flores y Arabescos</span>
+        <span class="bg-papelPink text-white text-xs px-4 py-1.5 rounded-full font-bold shadow-lg group-hover:bg-cempasuchil transition">
+          VER PÁGINA ✨
+        </span>
+      </a>
+
+      <!-- Botón 2: Pan de Muerto -->
+      <a href="Pan.html" class="card-select bg-gradient-to-br from-panGold/40 via-mictlan/90 to-black/80 border-2 border-panGold p-6 rounded-3xl flex flex-col items-center justify-center text-center group">
+        <span class="text-5xl sm:text-6xl mb-3 group-hover:scale-110 transition-transform">🍞</span>
+        <span class="font-rye text-xl text-gold mb-1">Pan de Muerto</span>
+        <span class="text-xs text-gray-300 mb-4">Canillas y Destellos de Azúcar</span>
+        <span class="bg-panGold text-mictlan text-xs px-4 py-1.5 rounded-full font-bold shadow-lg group-hover:bg-cempasuchil group-hover:text-white transition">
+          VER PÁGINA ✨
+        </span>
+      </a>
+
+      <!-- Botón 3: Ofrenda -->
+      <a href="Ofrenda.html" class="card-select bg-gradient-to-br from-cempasuchil/40 via-mictlan/90 to-black/80 border-2 border-cempasuchil p-6 rounded-3xl flex flex-col items-center justify-center text-center group">
+        <span class="text-5xl sm:text-6xl mb-3 group-hover:scale-110 transition-transform">🕯️</span>
+        <span class="font-rye text-xl text-gold mb-1">Ofrenda</span>
+        <span class="text-xs text-gray-300 mb-4">Altar Tradicional de Niveles</span>
+        <span class="bg-cempasuchil text-white text-xs px-4 py-1.5 rounded-full font-bold shadow-lg group-hover:bg-gold group-hover:text-mictlan transition">
+          VER PÁGINA ✨
+        </span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- PÁGINA 2: VISTA PRINCIPAL DEL LIENZO DIBUJADO -->
+  <div id="page-animacion" class="page-content hidden w-full flex flex-col items-center my-2">
+    
+    <!-- Selector rápido entre Obras -->
+    <section class="w-full max-w-3xl px-4 my-2 z-10">
+      <div class="grid grid-cols-3 gap-2 bg-mictlan/80 p-2 rounded-2xl border border-gold/30 backdrop-blur-md shadow-xl">
+        <button class="nav-art-btn border border-papelPink/50 p-2 rounded-xl text-center group active:scale-95" data-art="calaverita">
+          <span class="text-lg sm:text-2xl">💀</span>
+          <span class="font-rye text-xs text-gold block">Calaverita</span>
+        </button>
+        <button class="nav-art-btn border border-panGold/50 p-2 rounded-xl text-center group active:scale-95" data-art="pan">
+          <span class="text-lg sm:text-2xl">🍞</span>
+          <span class="font-rye text-xs text-gold block">Pan de Muerto</span>
+        </button>
+        <button class="nav-art-btn border border-cempasuchil/50 p-2 rounded-xl text-center group active:scale-95" data-art="ofrenda">
+          <span class="text-lg sm:text-2xl">🕯️</span>
+          <span class="font-rye text-xs text-gold block">Ofrenda</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Contenedor del SVG Animado -->
+    <main class="w-full max-w-5xl px-4 flex flex-col items-center justify-center relative z-10 my-1">
+      <div id="container" class="w-full flex justify-center items-center py-4 bg-mictlan/80 backdrop-blur-md rounded-3xl border border-gold/30 shadow-2xl relative overflow-hidden min-h-[380px]">
+        
+        <!-- 1. SVG CALAVERITA -->
+        <svg id="svg-calaverita" class="drawing-svg p-2" viewBox="0 0 500 500">
+          <g id="Calaverita_Art">
+            <path d="M 150,220 C 120,100 380,100 350,220 C 370,270 360,330 330,360 C 320,380 320,430 310,440 L 190,440 C 180,430 180,380 170,360 C 140,330 130,270 150,220 Z"/>
+            <circle cx="185" cy="230" r="45"/>
+            <circle cx="185" cy="230" r="25" class="st-detail"/>
+            <circle cx="315" cy="230" r="45"/>
+            <circle cx="315" cy="230" r="25" class="st-detail"/>
+            <circle cx="185" cy="170" r="10" class="st-detail"/><circle cx="225" cy="190" r="10" class="st-detail"/><circle cx="240" cy="230" r="10" class="st-detail"/><circle cx="225" cy="270" r="10" class="st-detail"/><circle cx="185" cy="290" r="10" class="st-detail"/><circle cx="145" cy="270" r="10" class="st-detail"/><circle cx="130" cy="230" r="10" class="st-detail"/><circle cx="145" cy="190" r="10" class="st-detail"/>
+            <circle cx="315" cy="170" r="10" class="st-detail"/><circle cx="355" cy="190" r="10" class="st-detail"/><circle cx="370" cy="230" r="10" class="st-detail"/><circle cx="355" cy="270" r="10" class="st-detail"/><circle cx="315" cy="290" r="10" class="st-detail"/><circle cx="275" cy="270" r="10" class="st-detail"/><circle cx="260" cy="230" r="10" class="st-detail"/><circle cx="275" cy="190" r="10" class="st-detail"/>
+            <path d="M 250,310 C 240,280 215,290 230,320 L 250,340 L 270,320 C 285,290 260,280 250,310 Z"/>
+            <path d="M 170,420 Q 250,450 330,420"/>
+            <line x1="190" y1="400" x2="190" y2="435" class="st-detail"/>
+            <line x1="220" y1="400" x2="220" y2="442" class="st-detail"/>
+            <line x1="250" y1="400" x2="250" y2="445" class="st-detail"/>
+            <line x1="280" y1="400" x2="280" y2="442" class="st-detail"/>
+            <line x1="310" y1="400" x2="310" y2="435" class="st-detail"/>
+            <circle cx="250" cy="120" r="20"/>
+            <circle cx="250" cy="90" r="12" class="st-detail"/><circle cx="275" cy="105" r="12" class="st-detail"/><circle cx="280" cy="130" r="12" class="st-detail"/><circle cx="265" cy="150" r="12" class="st-detail"/><circle cx="235" cy="150" r="12" class="st-detail"/><circle cx="220" cy="130" r="12" class="st-detail"/><circle cx="225" cy="105" r="12" class="st-detail"/>
+            <path class="st-detail" d="M 130,130 Q 170,90 200,120 T 170,150"/>
+            <path class="st-detail" d="M 370,130 Q 330,90 300,120 T 330,150"/>
+            <path class="st-detail" d="M 120,320 Q 140,360 170,350"/>
+            <path class="st-detail" d="M 380,320 Q 360,360 330,350"/>
+          </g>
+        </svg>
+
+        <!-- 2. SVG PAN DE MUERTO -->
+        <svg id="svg-pan" class="drawing-svg p-2 hidden" viewBox="0 0 600 500">
+          <g id="Pan_De_Muerto_Art">
+            <path d="M 100,380 C 80,240 200,160 300,160 C 400,160 520,240 500,380 C 460,420 140,420 100,380 Z"/>
+            <ellipse cx="300" cy="400" rx="240" ry="40"/>
+            <ellipse cx="300" cy="400" rx="260" ry="48" class="st-detail"/>
+            <circle cx="300" cy="160" r="32"/>
+            <circle cx="300" cy="160" r="18" class="st-detail"/>
+            <path d="M 300,180 C 250,220 220,280 160,340"/>
+            <circle cx="240" cy="240" r="14" class="st-detail"/><circle cx="190" cy="300" r="14" class="st-detail"/>
+            <path d="M 300,180 C 350,220 380,280 440,340"/>
+            <circle cx="360" cy="240" r="14" class="st-detail"/><circle cx="410" cy="300" r="14" class="st-detail"/>
+            <path d="M 300,180 C 220,200 180,240 120,280"/>
+            <circle cx="210" cy="210" r="14" class="st-detail"/><circle cx="150" cy="250" r="14" class="st-detail"/>
+            <path d="M 300,180 C 380,200 420,240 480,280"/>
+            <circle cx="390" cy="210" r="14" class="st-detail"/><circle cx="450" cy="250" r="14" class="st-detail"/>
+            <path class="st-fine" d="M 220,280 L 225,285 M 380,280 L 385,285 M 280,260 L 285,265 M 320,260 L 325,265 M 250,330 L 255,335 M 350,330 L 355,335"/>
+            <circle cx="270" cy="310" r="2" class="st-fine"/><circle cx="330" cy="310" r="2" class="st-fine"/><circle cx="200" cy="350" r="2" class="st-fine"/><circle cx="400" cy="350" r="2" class="st-fine"/>
+          </g>
+        </svg>
+
+        <!-- 3. SVG OFRENDA COMPLETA -->
+        <svg id="svg-ofrenda" class="drawing-svg p-2 hidden" viewBox="0 0 600 600">
+          <g id="Ofrenda_Dia_De_Muertos">
+            <path d="M 100,500 C 100,100 500,100 500,500"/>
+            <path class="st-detail" d="M 80,500 C 80,70 520,70 520,500"/>
+            <circle cx="100" cy="450" r="18"/><circle cx="110" cy="380" r="18"/><circle cx="130" cy="310" r="18"/><circle cx="160" cy="240" r="18"/><circle cx="200" cy="180" r="18"/><circle cx="250" cy="140" r="18"/>
+            <circle cx="300" cy="120" r="22"/>
+            <circle cx="350" cy="140" r="18"/><circle cx="400" cy="180" r="18"/><circle cx="440" cy="240" r="18"/><circle cx="470" cy="310" r="18"/><circle cx="490" cy="380" r="18"/><circle cx="500" cy="450" r="18"/>
+            <rect x="120" y="440" width="360" height="70" rx="6"/>
+            <rect x="170" y="340" width="260" height="100" rx="6"/>
+            <rect x="220" y="240" width="160" height="100" rx="6"/>
+            <path class="st-detail" d="M 120,440 Q 135,460 150,440 Q 165,460 180,440 Q 195,460 210,440 Q 225,460 240,440 Q 255,460 270,440 Q 285,460 300,440 Q 315,460 330,440 Q 345,460 360,440 Q 375,460 390,440 Q 405,460 420,440 Q 435,460 450,440 Q 465,460 480,440"/>
+            <path class="st-detail" d="M 170,340 Q 185,360 200,340 Q 215,360 230,340 Q 245,360 260,340 Q 275,360 290,340 Q 305,360 320,340 Q 335,360 350,340 Q 365,360 380,340 Q 395,360 410,340 Q 425,360 430,340"/>
+            <rect x="260" y="150" width="80" height="90" rx="8"/>
+            <rect x="268" y="158" width="64" height="74" class="st-detail"/>
+            <circle cx="300" cy="185" r="14" class="st-detail"/>
+            <path class="st-detail" d="M 280,222 C 280,205 320,205 320,222"/>
+            <path d="M 270,335 C 265,310 335,310 330,335 Z"/>
+            <circle cx="300" cy="315" r="6"/>
+            <path d="M 195,335 Q 180,320 195,305 Q 210,305 215,320 Q 215,335 195,335 Z"/>
+            <path d="M 395,335 Q 380,320 395,305 Q 410,305 415,320 Q 415,335 395,335 Z"/>
+            <rect x="230" y="210" width="16" height="30"/><path class="st-detail" d="M 238,202 Q 233,190 238,185 Q 243,190 238,202 Z"/>
+            <rect x="354" y="210" width="16" height="30"/><path class="st-detail" d="M 362,202 Q 357,190 362,185 Q 367,190 362,202 Z"/>
+            <rect x="130" y="410" width="22" height="30"/><path class="st-detail" d="M 141,402 Q 136,390 141,385 Q 146,390 141,402 Z"/>
+            <rect x="448" y="410" width="22" height="30"/><path class="st-detail" d="M 459,402 Q 454,390 459,385 Q 464,390 459,402 Z"/>
+            <path d="M 150,510 L 165,470 L 185,470 L 200,510 Z"/>
+            <path class="st-detail" d="M 160,460 C 150,430 180,420 170,390 C 160,360 190,350 175,320"/>
+            <ellipse cx="300" cy="520" rx="180" ry="25"/>
+            <circle cx="200" cy="520" r="10" class="st-detail"/><circle cx="250" cy="525" r="12" class="st-detail"/><circle cx="300" cy="520" r="14" class="st-detail"/><circle cx="350" cy="525" r="12" class="st-detail"/><circle cx="400" cy="520" r="10" class="st-detail"/>
+          </g>
+        </svg>
+
+      </div>
+
+      <!-- PANEL DE CONTROLES E INTERACTIVIDAD -->
+      <div class="w-full mt-3 bg-mictlan/80 backdrop-blur-md p-3 sm:p-4 rounded-2xl border border-gold/30 shadow-xl flex flex-wrap gap-3 items-center justify-between">
+        
+        <button id="draw-btn" class="bg-gradient-to-r from-panGold via-gold to-cempasuchil hover:from-cempasuchil hover:to-panGold text-mictlan font-bold px-5 py-2.5 rounded-xl shadow-lg transform active:scale-95 transition duration-200 flex items-center gap-2">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>ANIMAR DE NUEVO</span>
+        </button>
+
+        <div class="flex flex-col gap-1 bg-black/40 px-3 py-1.5 rounded-xl border border-gray-700">
+          <span class="text-[10px] sm:text-xs text-gold font-semibold uppercase flex items-center gap-1">
+            <i class="fa-solid fa-palette"></i> Paletas Tradicionales:
+          </span>
+          <div class="flex flex-wrap gap-1 mt-0.5">
+            <button class="palette-btn text-xs px-2 py-0.5 rounded-lg border border-gold/50 bg-gold/20 text-gold font-medium hover:bg-gold/30 transition" data-palette="tradicional">
+              🌺 Altar
+            </button>
+            <button class="palette-btn text-xs px-2 py-0.5 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="cempasuchil">
+              🏵️ Cempasúchil
+            </button>
+            <button class="palette-btn text-xs px-2 py-0.5 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="chocolate">
+              🕯️ Copal
+            </button>
+            <button class="palette-btn text-xs px-2 py-0.5 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="alebrije">
+              ⚡ Alebrije
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 bg-black/40 px-3 py-2 rounded-xl border border-gray-700">
+          <label class="flex items-center gap-1.5 cursor-pointer text-xs text-gray-300 select-none">
+            <input type="checkbox" id="multicolor-mode" checked class="accent-panGold w-4 h-4 rounded">
+            <span>Multicolor</span>
+          </label>
+
+          <input type="color" id="custom-stroke-color" value="#FF5719" class="w-6 h-6 rounded border-0 bg-transparent cursor-pointer">
+
+          <button id="glow-toggle-btn" class="text-xs px-2 py-0.5 rounded bg-panGold text-mictlan font-bold">Glow ON</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Pie de página -->
+  <footer class="w-full text-center py-3 text-xs text-gold/80 z-10">
+    <p>¡Feliz Día de Muertos! • Calaverita, Pan de Muerto y Ofrenda Tradicional</p>
+  </footer>
+
+  <!-- LÓGICA Y ANIMACIONES -->
+  <script>
+    class SoundSynth {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+      }
+
+      playChime(freq, duration = 0.15) {
+        if (!this.enabled || !this.ctx) return;
+        
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          console.log("Audio suprimido");
+        }
+      }
+
+      playCompletionSound() {
+        if (!this.enabled || !this.ctx) return;
+        const notes = [293.66, 369.99, 440.00, 587.33, 739.99]; // Acorde D Mayor
+        notes.forEach((freq, idx) => {
+          setTimeout(() => this.playChime(freq, 0.5), idx * 100);
+        });
+      }
+    }
+
+    const sound = new SoundSynth();
+
+    function SVG(tag) {
+      return document.createElementNS('http://www.w3.org/2000/svg', tag);
+    }
+
+    function replaceRectsWithPaths(parentElement) {
+      $(parentElement).find('rect').each(function() {
+        const x = parseFloat($(this).attr('x') || 0);
+        const y = parseFloat($(this).attr('y') || 0);
+        const w = parseFloat($(this).attr('width') || 0);
+        const h = parseFloat($(this).attr('height') || 0);
+        const d = `M${x},${y} L${x + w},${y} L${x + w},${y + h} L${x},${y + h} Z`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replaceLinesWithPaths(parentElement) {
+      $(parentElement).find('line').each(function() {
+        const x1 = $(this).attr('x1') || 0;
+        const y1 = $(this).attr('y1') || 0;
+        const x2 = $(this).attr('x2') || 0;
+        const y2 = $(this).attr('y2') || 0;
+        const d = `M${x1},${y1} L${x2},${y2}`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replaceCirclesWithPaths(parentElement) {
+      $(parentElement).find('circle').each(function() {
+        const cx = parseFloat($(this).attr('cx') || 0);
+        const cy = parseFloat($(this).attr('cy') || 0);
+        const r = parseFloat($(this).attr('r') || 0);
+        const r2 = r * 2;
+        const d = `M ${cx}, ${cy} m ${-r}, 0 a ${r},${r} 0 1,0 ${r2},0 a ${r},${r} 0 1,0 ${-r2},0`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replaceEllipsesWithPaths(parentElement) {
+      $(parentElement).find('ellipse').each(function() {
+        const cx = parseFloat($(this).attr('cx') || 0);
+        const cy = parseFloat($(this).attr('cy') || 0);
+        const rx = parseFloat($(this).attr('rx') || 0);
+        const ry = parseFloat($(this).attr('ry') || 0);
+        const d = `M ${cx}, ${cy} m ${-rx}, 0 a ${rx},${ry} 0 1,0 ${rx * 2},0 a ${rx},${ry} 0 1,0 ${-rx * 2},0`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function convertAllToPaths(svgElement) {
+      replaceRectsWithPaths(svgElement);
+      replaceLinesWithPaths(svgElement);
+      replaceEllipsesWithPaths(svgElement);
+      replaceCirclesWithPaths(svgElement);
+    }
+
+    const PALETTES = {
+      tradicional: {
+        bg: '#120b18',
+        colors: ['#FFC107', '#E91E63', '#FF5719', '#00BCD4', '#8E24AA']
+      },
+      cempasuchil: {
+        bg: '#140818',
+        colors: ['#FF5719', '#FFC107', '#E91E63', '#9C27B0', '#FF8A65']
+      },
+      chocolate: {
+        bg: '#100608',
+        colors: ['#FFB74D', '#D97706', '#FFF3E0', '#8D6E63', '#E6A15C']
+      },
+      alebrije: {
+        bg: '#080814',
+        colors: ['#FF007F', '#00E5FF', '#76FF03', '#FFEA00', '#D500F9']
+      }
+    };
+
+    let activePaletteKey = 'tradicional';
+    let isMulticolorMode = true;
+    let isGlowEnabled = true;
+
+    let activeAnimationId = null;
+    let animationSpeed = 25;
+    let currentArt = 'calaverita';
+
+    function applyPathColors(paths) {
+      const palette = PALETTES[activePaletteKey].colors;
+      const customColor = $('#custom-stroke-color').val();
+
+      paths.forEach((path, idx) => {
+        if (isMulticolorMode) {
+          const colorIndex = idx % palette.length;
+          path.style.stroke = palette[colorIndex];
+        } else {
+          path.style.stroke = customColor;
+        }
+      });
+
+      const mainColor = isMulticolorMode ? palette[0] : customColor;
+      document.documentElement.style.setProperty('--orange', mainColor);
+      document.documentElement.style.setProperty('--stroke-glow', mainColor + '66');
+    }
+
+    function drawActiveSVG() {
+      if (activeAnimationId) {
+        cancelAnimationFrame(activeAnimationId);
+      }
+
+      const activeSvg = $(`#svg-${currentArt}`);
+      const paths = activeSvg.find('path').get();
+      $('#container').removeClass('glow-active');
+
+      applyPathColors(paths);
+
+      paths.forEach((path) => {
+        const length = path.getTotalLength();
+        path.style.strokeDasharray = `${length} ${length}`;
+        path.style.strokeDashoffset = length;
+        path.dataset.length = length;
+      });
+
+      let currentPathIndex = 0;
+      let startTime = null;
+      let pathDuration = Math.max(120, animationSpeed * 7);
+
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+
+        if (currentPathIndex < paths.length) {
+          const path = paths[currentPathIndex];
+          const length = parseFloat(path.dataset.length);
+
+          if (length === 0) {
+            currentPathIndex++;
+            startTime = timestamp;
+            activeAnimationId = requestAnimationFrame(step);
+            return;
+          }
+
+          let progress = elapsed / pathDuration;
+          if (progress > 1) progress = 1;
+
+          let easeProgress = progress < 0.5 
+            ? 2 * progress * progress 
+            : -1 + (4 - 2 * progress) * progress;
+
+          const currentOffset = length * (1 - easeProgress);
+          path.style.strokeDashoffset = currentOffset;
+
+          if (progress < 1) {
+            activeAnimationId = requestAnimationFrame(step);
+          } else {
+            if (currentPathIndex % 3 === 0) {
+              sound.playChime(260 + (currentPathIndex * 14) % 360);
+            }
+            currentPathIndex++;
+            startTime = timestamp;
+            activeAnimationId = requestAnimationFrame(step);
+          }
+        } else {
+          if (isGlowEnabled) {
+            $('#container').addClass('glow-active');
+          }
+          sound.playCompletionSound();
+        }
+      }
+
+      activeAnimationId = requestAnimationFrame(step);
+    }
+
+    function switchArt(artKey) {
+      currentArt = artKey;
+      $('.drawing-svg').addClass('hidden');
+      $(`#svg-${currentArt}`).removeClass('hidden');
+
+      $('.nav-art-btn').removeClass('ring-2 ring-gold border-gold');
+      $(`.nav-art-btn[data-art="${artKey}"]`).addClass('ring-2 ring-gold border-gold');
+
+      drawActiveSVG();
+    }
+
+    function initPetalRainCanvas() {
+      const canvas = document.getElementById('petal-canvas');
+      const ctx = canvas.getContext('2d');
+
+      let width = (canvas.width = window.innerWidth);
+      let height = (canvas.height = window.innerHeight);
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      const particles = Array.from({ length: 50 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height - height,
+        size: Math.random() * 8 + 3,
+        speedY: Math.random() * 1.5 + 0.6,
+        speedX: Math.random() * 1.0 - 0.5,
+        angle: Math.random() * Math.PI * 2,
+        isSugar: Math.random() > 0.75,
+        color: Math.random() > 0.4 ? '#FF5719' : (Math.random() > 0.5 ? '#FFC107' : '#E91E63')
+      }));
+
+      function render() {
+        ctx.clearRect(0, 0, width, height);
+
+        particles.forEach((p) => {
+          p.y += p.speedY;
+          p.x += Math.sin(p.angle) * 0.8;
+          p.angle += 0.02;
+
+          if (p.y > height) {
+            p.y = -15;
+            p.x = Math.random() * width;
+          }
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle);
+
+          if (p.isSugar) {
+            ctx.fillStyle = '#FFF9E6';
+            ctx.fillRect(-p.size/2, -p.size/2, p.size * 0.7, p.size * 0.7);
+          } else {
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, p.size, p.size / 2.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.restore();
+        });
+
+        requestAnimationFrame(render);
+      }
+
+      render();
+    }
+
+    $(document).ready(function() {
+      convertAllToPaths($('#svg-calaverita'));
+      convertAllToPaths($('#svg-pan'));
+      convertAllToPaths($('#svg-ofrenda'));
+
+      initPetalRainCanvas();
+
+      // Transición desde los 3 Botones Principales de Inicio
+      $('.start-art-btn').off('click');
+
+      // Navegación de Botones del Encabezado
+      $('.page-nav-btn').on('click', function() {
+        sound.init();
+        const pageTarget = $(this).data('page');
+        
+        $('.page-nav-btn').removeClass('active-page bg-cempasuchil text-white').addClass('bg-mictlan/80 border border-gold/40 text-gray-300');
+        $(this).addClass('active-page bg-cempasuchil text-white').removeClass('bg-mictlan/80 border border-gold/40 text-gray-300');
+
+        $('.page-content').addClass('hidden');
+        $(`#page-${pageTarget}`).removeClass('hidden');
+
+        if (pageTarget === 'animacion') {
+          drawActiveSVG();
+        }
+      });
+
+      // Cambiar de Arte dentro del Lienzo
+      $('.nav-art-btn').on('click', function() {
+        sound.init();
+        const artKey = $(this).data('art');
+        switchArt(artKey);
+      });
+
+      $('#draw-btn').on('click', function() {
+        sound.init();
+        drawActiveSVG();
+      });
+
+      $('.palette-btn').on('click', function() {
+        $('.palette-btn').removeClass('border-gold/50 bg-gold/20 text-gold').addClass('border-gray-700 text-gray-300');
+        $(this).addClass('border-gold/50 bg-gold/20 text-gold').removeClass('border-gray-700 text-gray-300');
+
+        activePaletteKey = $(this).data('palette');
+        drawActiveSVG();
+      });
+
+      $('#multicolor-mode').on('change', function() {
+        isMulticolorMode = $(this).is(':checked');
+        drawActiveSVG();
+      });
+
+      $('#custom-stroke-color').on('input', function() {
+        if (!isMulticolorMode) {
+          drawActiveSVG();
+        }
+      });
+
+      $('#glow-toggle-btn').on('click', function() {
+        isGlowEnabled = !isGlowEnabled;
+        if (isGlowEnabled) {
+          $(this).removeClass('bg-gray-700 text-gray-300').addClass('bg-panGold text-mictlan').text('Glow ON');
+          $('#container').addClass('glow-active');
+        } else {
+          $(this).removeClass('bg-panGold text-mictlan').addClass('bg-gray-700 text-gray-300').text('Glow OFF');
+          $('#container').removeClass('glow-active');
+        }
+      });
+
+      $('#sound-toggle-header').on('click', function() {
+        sound.init();
+        sound.enabled = !sound.enabled;
+
+        const $icon = $(this).find('i');
+        if (sound.enabled) {
+          $icon.removeClass('fa-volume-xmark').addClass('fa-volume-high text-gold');
+          sound.playChime(440.00, 0.2);
+        } else {
+          $icon.removeClass('fa-volume-high text-gold').addClass('fa-volume-xmark text-panGold');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

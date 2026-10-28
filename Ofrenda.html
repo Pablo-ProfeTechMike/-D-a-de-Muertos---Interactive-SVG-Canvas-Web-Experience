@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¡Decora tu Ofrenda! - Día de Muertos</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- jQuery CDN -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Rye & Fredoka -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Rye&display=swap" rel="stylesheet">
+<link rel="icon" href="https://ca-times.brightspotcdn.com/dims4/default/f0a99bd/2147483647/strip/false/crop/6048x4024+0+0/resize/1486x989!/quality/75/?url=https%3A%2F%2Fcalifornia-times-brightspot.s3.amazonaws.com%2F45%2F47%2Fab27c88f430095bd51f9bf8b61be%2Fla-photos-1staff-851346-hm-dia-de-los-muertos-altar-photos-009.JPG">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            panGold: '#E6A15C',
+            azucarWhite: '#FFF9E6',
+            cempasuchil: '#FF5719',
+            gold: '#FFC107',
+            mictlan: '#1b1822',
+            papelPurple: '#8E24AA',
+            papelPink: '#E91E63',
+            papelCyan: '#00BCD4',
+          },
+          fontFamily: {
+            rye: ['Rye', 'serif'],
+            fredoka: ['Fredoka', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --orange: #E6A15C;
+      --stroke-glow: rgba(230, 161, 92, 0.4);
+      --bg-color: #120f17;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      font-family: 'Fredoka', sans-serif;
+      overflow-x: hidden;
+      color: #f3f4f6;
+    }
+
+    /* Papel Picado Banner Styling */
+    .papel-picado {
+      background: repeating-linear-gradient(
+        90deg,
+        #E91E63 0px, #E91E63 80px,
+        #FF5719 80px, #FF5719 160px,
+        #00BCD4 160px, #00BCD4 240px,
+        #8E24AA 240px, #8E24AA 320px,
+        #4CAF50 320px, #4CAF50 400px
+      );
+      clip-path: polygon(
+        0% 0%, 100% 0%, 100% 70%, 
+        95% 100%, 90% 70%, 85% 100%, 80% 70%, 75% 100%, 70% 70%, 65% 100%, 60% 70%,
+        55% 100%, 50% 70%, 45% 100%, 40% 70%, 35% 100%, 30% 70%, 25% 100%, 20% 70%,
+        15% 100%, 10% 70%, 5% 100%, 0% 70%
+      );
+    }
+
+    /* SVG Base & Path Styles */
+    #bread-svg {
+      max-height: 68vh;
+      width: auto;
+      margin: auto;
+      display: block;
+      filter: drop-shadow(0 0 14px var(--stroke-glow));
+      transition: filter 0.5s ease;
+    }
+
+    #bread-svg path {
+      fill: none;
+      stroke: var(--orange);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10;
+      transition: stroke 0.5s ease;
+    }
+
+    #bread-svg path.st-detail {
+      stroke-width: 2.5;
+    }
+
+    #bread-svg path.st-fine {
+      stroke-width: 1.5;
+      stroke-dasharray: 2 4;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1b1822;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #FF5719;
+      border-radius: 4px;
+    }
+
+    /* Glow animation for completed drawing */
+    .glow-active #bread-svg path {
+      animation: pulseGlow 2.5s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseGlow {
+      0% {
+        filter: drop-shadow(0 0 2px var(--orange));
+      }
+      100% {
+        filter: drop-shadow(0 0 10px var(--orange));
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center relative">
+
+  <!-- Background Animated Cempasúchil Petal & Sugar Dust Canvas -->
+  <canvas id="petal-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+  <!-- Papel Picado Top Banner -->
+  <header class="w-full relative z-10">
+    <div class="papel-picado h-12 w-full shadow-lg"></div>
+    <div class="text-center pt-4 pb-1 px-4">
+      <h1 class="font-rye text-3xl sm:text-5xl text-gold tracking-wide drop-shadow-[0_2px_10px_rgba(255,193,7,0.5)]">
+        ¡Ofrenda de Día de Muertos!
+      </h1>
+      <p class="text-gray-300 text-sm sm:text-base mt-1">Animación de Trazo e Ilustración del Altar Tradicional</p>
+    </div>
+  </header>
+
+  <!-- Main Display Container -->
+  <main class="w-full max-w-5xl px-4 flex flex-col items-center justify-center relative z-10 my-2">
+    
+    <!-- SVG Container -->
+    <div id="container" class="w-full flex justify-center items-center py-4 bg-mictlan/70 backdrop-blur-md rounded-3xl border border-gold/30 shadow-2xl relative overflow-hidden">
+      
+      <div id="loading-overlay" class="absolute inset-0 bg-mictlan/90 flex flex-col items-center justify-center z-20 transition-opacity duration-500">
+        <i class="fa-solid font-rye text-panGold text-5xl animate-bounce mb-3">🕯️</i>
+        <p class="text-gold font-semibold text-lg">Preparando el altar...</p>
+      </div>
+
+      <!-- Mexican Ofrenda Custom Vector Artwork -->
+      <svg id="bread-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" class="p-2">
+        <g id="Ofrenda_Dia_De_Muertos">
+          
+          <!-- SECCIÓN 1: Arco de Cempasúchil -->
+          <g id="Arco_Cempasuchil">
+            <path d="M 100,500 C 100,100 500,100 500,500"/>
+            <path class="st-detail" d="M 80,500 C 80,70 520,70 520,500"/>
+            <!-- Flores del arco -->
+            <circle cx="100" cy="450" r="18"/>
+            <circle cx="110" cy="380" r="18"/>
+            <circle cx="130" cy="310" r="18"/>
+            <circle cx="160" cy="240" r="18"/>
+            <circle cx="200" cy="180" r="18"/>
+            <circle cx="250" cy="140" r="18"/>
+            <circle cx="300" cy="120" r="22"/> <!-- Flor principal en la cima -->
+            <circle cx="350" cy="140" r="18"/>
+            <circle cx="400" cy="180" r="18"/>
+            <circle cx="440" cy="240" r="18"/>
+            <circle cx="470" cy="310" r="18"/>
+            <circle cx="490" cy="380" r="18"/>
+            <circle cx="500" cy="450" r="18"/>
+          </g>
+
+          <!-- SECCIÓN 2: Niveles del Altar (Estructura de la Ofrenda) -->
+          <g id="Niveles_Altar">
+            <!-- Nivel Inferior / Base -->
+            <rect x="120" y="440" width="360" height="70" rx="6"/>
+            <!-- Nivel Medio -->
+            <rect x="170" y="340" width="260" height="100" rx="6"/>
+            <!-- Nivel Superior -->
+            <rect x="220" y="240" width="160" height="100" rx="6"/>
+            <!-- Papel Picado Adornos en Bordes -->
+            <path class="st-detail" d="M 120,440 Q 135,460 150,440 Q 165,460 180,440 Q 195,460 210,440 Q 225,460 240,440 Q 255,460 270,440 Q 285,460 300,440 Q 315,460 330,440 Q 345,460 360,440 Q 375,460 390,440 Q 405,460 420,440 Q 435,460 450,440 Q 465,460 480,440"/>
+            <path class="st-detail" d="M 170,340 Q 185,360 200,340 Q 215,360 230,340 Q 245,360 260,340 Q 275,360 290,340 Q 305,360 320,340 Q 335,360 350,340 Q 365,360 380,340 Q 395,360 410,340 Q 425,360 430,340"/>
+            <path class="st-detail" d="M 220,240 Q 235,260 250,240 Q 265,260 280,240 Q 295,260 310,240 Q 325,260 340,240 Q 355,260 370,240 Q 385,260 380,240"/>
+          </g>
+
+          <!-- SECCIÓN 3: Retrato Principal (Cima de la Ofrenda) -->
+          <g id="Retrato_Foto">
+            <rect x="260" y="150" width="80" height="90" rx="8"/>
+            <rect x="268" y="158" width="64" height="74" class="st-detail"/>
+            <!-- Silueta Simbólica de Recuerdo -->
+            <circle cx="300" cy="185" r="14" class="st-detail"/>
+            <path class="st-detail" d="M 280,222 C 280,205 320,205 320,222"/>
+          </g>
+
+          <!-- SECCIÓN 4: Elementos de la Ofrenda (Pan de Muerto, Calaverita, Velas y Copal) -->
+          <g id="Ofrendas_Elementos">
+            
+            <!-- Pan de Muerto Central -->
+            <path d="M 270,335 C 265,310 335,310 330,335 Z"/>
+            <circle cx="300" cy="315" r="6"/>
+            <path class="st-detail" d="M 285,325 C 295,315 305,315 315,325"/>
+
+            <!-- Calaveritas de Azúcar -->
+            <!-- Calaverita Izquierda -->
+            <path d="M 195,335 Q 180,320 195,305 Q 210,305 215,320 Q 215,335 195,335 Z"/>
+            <circle cx="195" cy="315" r="3" class="st-detail"/>
+            <circle cx="205" cy="315" r="3" class="st-detail"/>
+            
+            <!-- Calaverita Derecha -->
+            <path d="M 395,335 Q 380,320 395,305 Q 410,305 415,320 Q 415,335 395,335 Z"/>
+            <circle cx="390" cy="315" r="3" class="st-detail"/>
+            <circle cx="400" cy="315" r="3" class="st-detail"/>
+
+            <!-- Velas / Veladoras -->
+            <!-- Vela Izquierda Superior -->
+            <rect x="230" y="210" width="16" height="30"/>
+            <path class="st-detail" d="M 238,202 Q 233,190 238,185 Q 243,190 238,202 Z"/> <!-- Llama -->
+            
+            <!-- Vela Derecha Superior -->
+            <rect x="354" y="210" width="16" height="30"/>
+            <path class="st-detail" d="M 362,202 Q 357,190 362,185 Q 367,190 362,202 Z"/> <!-- Llama -->
+
+            <!-- Veladoras Flanqueando el Piso -->
+            <rect x="130" y="410" width="22" height="30"/>
+            <path class="st-detail" d="M 141,402 Q 136,390 141,385 Q 146,390 141,402 Z"/>
+
+            <rect x="448" y="410" width="22" height="30"/>
+            <path class="st-detail" d="M 459,402 Q 454,390 459,385 Q 464,390 459,402 Z"/>
+
+            <!-- Copa de Copal / Sahumerio con Humo -->
+            <path d="M 150,510 L 165,470 L 185,470 L 200,510 Z"/>
+            <path class="st-detail" d="M 160,460 C 150,430 180,420 170,390 C 160,360 190,350 175,320"/>
+            <path class="st-detail" d="M 180,460 C 190,430 170,420 185,390 C 195,360 175,350 185,320"/>
+
+            <!-- Vasito de Agua y Plátanos / Fruta en el Nivel Inferior -->
+            <rect x="390" y="415" width="24" height="25" rx="2"/>
+            <path class="st-detail" d="M 390,422 L 414,422"/>
+
+            <!-- Tapete de Flores de Cempasúchil en el Piso -->
+            <ellipse cx="300" cy="520" rx="180" ry="25"/>
+            <circle cx="200" cy="520" r="10" class="st-detail"/>
+            <circle cx="250" cy="525" r="12" class="st-detail"/>
+            <circle cx="300" cy="520" r="14" class="st-detail"/>
+            <circle cx="350" cy="525" r="12" class="st-detail"/>
+            <circle cx="400" cy="520" r="10" class="st-detail"/>
+          </g>
+
+          <!-- SECCIÓN 5: Texto Tradicional Inferior -->
+          <g id="Texto_Tradicion">
+            <path class="st-detail" d="M 160,565 Q 300,580 440,565"/>
+            <path class="st-detail" d="M 200,578 Q 300,590 400,578"/>
+          </g>
+
+        </g>
+      </svg>
+    </div>
+
+    <!-- Dashboard de Control -->
+    <div class="w-full mt-4 bg-mictlan/80 backdrop-blur-md p-4 rounded-2xl border border-gold/30 shadow-xl flex flex-wrap gap-4 items-center justify-between">
+      
+      <!-- Botón Principal -->
+      <button id="draw-btn" class="bg-gradient-to-r from-panGold via-gold to-cempasuchil hover:from-cempasuchil hover:to-panGold text-mictlan font-bold px-6 py-3 rounded-xl shadow-lg transform active:scale-95 transition duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>¡ANIMAR OFRENDA!</span>
+      </button>
+
+      <button id="draw-btn" class="bg-gradient-to-r from-cempasuchil to-gold hover:from-gold hover:to-cempasuchil text-mictlan font-bold px-6 py-3 rounded-xl shadow-lg transform active:scale-95 transition duration-200 flex items-center gap-2">
+       <a href="index.html">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>REGRESAR</span>
+        </a>
+      </button>
+
+      <!-- Selector de Paletas de Colores Mexicanas -->
+      <div class="flex flex-col gap-1 bg-black/40 px-3 py-2 rounded-xl border border-gray-700">
+        <span class="text-xs text-gold font-semibold uppercase flex items-center gap-1">
+          <i class="fa-solid fa-palette"></i> Paletas del Altar:
+        </span>
+        <div class="flex flex-wrap gap-1.5 mt-1">
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gold/50 bg-gold/20 text-gold font-medium hover:bg-gold/30 transition" data-palette="tradicional" title="Cempasúchil & Papel Picado - Tonos cálidos y dorados">
+            🌺 Altar Tradicional
+          </button>
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="cempasuchil" title="Naranja Cempasúchil, Púrpura y Dorado">
+            🏵️ Cempasúchil Vivo
+          </button>
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="chocolate" title="Copal, Mantequilla y Madera">
+            🕯️ Velas & Copal
+          </button>
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="alebrije" title="Neón Vibrante: Magenta, Cian y Verde">
+            ⚡ Alebrije Festivo
+          </button>
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="noche" title="Violeta Místico, Cian y Oro">
+            🌙 Noche Mística
+          </button>
+        </div>
+      </div>
+
+      <!-- Modo de Color y Selector Personalizado -->
+      <div class="flex items-center gap-3 bg-black/40 px-3 py-2 rounded-xl border border-gray-700">
+        <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-300 select-none">
+          <input type="checkbox" id="multicolor-mode" checked class="accent-panGold w-4 h-4 rounded">
+          <span>Multicolor por Secciones</span>
+        </label>
+        
+        <div class="h-4 w-px bg-gray-700"></div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-400">Trazo:</span>
+          <input type="color" id="custom-stroke-color" value="#E6A15C" class="w-7 h-7 rounded border-0 bg-transparent cursor-pointer shadow">
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-400">Glow:</span>
+          <button id="glow-toggle-btn" class="text-xs px-2 py-1 rounded bg-panGold text-mictlan font-bold">ON</button>
+        </div>
+      </div>
+
+      <!-- Selector de Velocidad -->
+      <div class="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-gray-700">
+        <span class="text-xs text-gray-400 font-semibold uppercase"><i class="fa-solid fa-gauge-high mr-1"></i>Velocidad:</span>
+        <button class="speed-btn px-2.5 py-1 text-xs rounded-lg bg-panGold text-mictlan font-bold" data-speed="25">Normal</button>
+        <button class="speed-btn px-2.5 py-1 text-xs rounded-lg hover:bg-gray-700 text-gray-300 font-medium" data-speed="10">Rápido</button>
+        <button class="speed-btn px-2.5 py-1 text-xs rounded-lg hover:bg-gray-700 text-gray-300 font-medium" data-speed="60">Lento</button>
+      </div>
+
+      <!-- Botón de Sonido -->
+      <button id="sound-btn" class="bg-black/40 hover:bg-black/60 text-gray-300 px-3 py-2 rounded-xl border border-gray-700 transition flex items-center gap-2 text-sm">
+        <i class="fa-solid fa-volume-xmark text-panGold"></i>
+        <span>Efectos de Audio</span>
+      </button>
+
+    </div>
+
+  </main>
+
+  <!-- Pie de página -->
+  <footer class="w-full text-center py-3 text-xs text-gray-400 z-10">
+    <p>Tradición Mexicana de Día de Muertos • Altar de Ofrenda</p>
+  </footer>
+
+  <!-- Lógica de la Aplicación -->
+  <script>
+    // Sintetizador de Audio con Web Audio API para Efectos Festivos
+    class SoundSynth {
+      constructor() {
+        this.ctx = null;
+        this.enabled = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+      }
+
+      playChime(freq, duration = 0.15) {
+        if (!this.enabled || !this.ctx) return;
+        
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          console.log("Audio suprimido por el navegador");
+        }
+      }
+
+      playCompletionSound() {
+        if (!this.enabled || !this.ctx) return;
+        // Acorde cálido de guitarra / arpa
+        const notes = [293.66, 369.99, 440.00, 587.33, 739.99]; // D4, F#4, A4, D5, F#5
+        notes.forEach((freq, idx) => {
+          setTimeout(() => this.playChime(freq, 0.5), idx * 100);
+        });
+      }
+    }
+
+    const sound = new SoundSynth();
+
+    // Conversión dinámica de formas SVG a <path>
+    function SVG(tag) {
+      return document.createElementNS('http://www.w3.org/2000/svg', tag);
+    }
+
+    function replaceRectsWithPaths(parentElement) {
+      $(parentElement).find('rect').each(function() {
+        const x = parseFloat($(this).attr('x') || 0);
+        const y = parseFloat($(this).attr('y') || 0);
+        const w = parseFloat($(this).attr('width') || 0);
+        const h = parseFloat($(this).attr('height') || 0);
+        const d = `M${x},${y} L${x + w},${y} L${x + w},${y + h} L${x},${y + h} Z`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replaceLinesWithPaths(parentElement) {
+      $(parentElement).find('line').each(function() {
+        const x1 = $(this).attr('x1') || 0;
+        const y1 = $(this).attr('y1') || 0;
+        const x2 = $(this).attr('x2') || 0;
+        const y2 = $(this).attr('y2') || 0;
+        const d = `M${x1},${y1} L${x2},${y2}`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replaceCirclesWithPaths(parentElement) {
+      $(parentElement).find('circle').each(function() {
+        const cx = parseFloat($(this).attr('cx') || 0);
+        const cy = parseFloat($(this).attr('cy') || 0);
+        const r = parseFloat($(this).attr('r') || 0);
+        const r2 = r * 2;
+        const d = `M ${cx}, ${cy} m ${-r}, 0 a ${r},${r} 0 1,0 ${r2},0 a ${r},${r} 0 1,0 ${-r2},0`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replaceEllipsesWithPaths(parentElement) {
+      $(parentElement).find('ellipse').each(function() {
+        const cx = parseFloat($(this).attr('cx') || 0);
+        const cy = parseFloat($(this).attr('cy') || 0);
+        const rx = parseFloat($(this).attr('rx') || 0);
+        const ry = parseFloat($(this).attr('ry') || 0);
+        const d = `M ${cx}, ${cy} m ${-rx}, 0 a ${rx},${ry} 0 1,0 ${rx * 2},0 a ${rx},${ry} 0 1,0 ${-rx * 2},0`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replacePolygonsWithPaths(parentElement) {
+      $(parentElement).find('polygon').each(function() {
+        const points = $(this).attr('points');
+        if (points) {
+          const d = `M ${points} Z`;
+          $(SVG('path'))
+            .attr('d', d)
+            .attr('class', $(this).attr('class') || '')
+            .insertAfter(this);
+        }
+        $(this).remove();
+      });
+    }
+
+    function replacePolylinesWithPaths(parentElement) {
+      $(parentElement).find('polyline').each(function() {
+        const points = $(this).attr('points');
+        if (points) {
+          const d = `M ${points}`;
+          $(SVG('path'))
+            .attr('d', d)
+            .attr('class', $(this).attr('class') || '')
+            .insertAfter(this);
+        }
+        $(this).remove();
+      });
+    }
+
+    function convertAllToPaths(svgElement) {
+      replaceRectsWithPaths(svgElement);
+      replaceLinesWithPaths(svgElement);
+      replaceEllipsesWithPaths(svgElement);
+      replaceCirclesWithPaths(svgElement);
+      replacePolygonsWithPaths(svgElement);
+      replacePolylinesWithPaths(svgElement);
+    }
+
+    // Definición de Paletas Temáticas Mexicanas
+    const PALETTES = {
+      tradicional: {
+        name: 'Altar Tradicional',
+        bg: '#141018',
+        colors: ['#FFC107', '#E91E63', '#FF5719', '#00BCD4', '#8E24AA']
+      },
+      cempasuchil: {
+        name: 'Cempasúchil Vivo',
+        bg: '#160d1a',
+        colors: ['#FF5719', '#FFC107', '#E91E63', '#9C27B0', '#FF8A65']
+      },
+      chocolate: {
+        name: 'Velas & Copal',
+        bg: '#120a08',
+        colors: ['#FFB74D', '#D97706', '#FFF3E0', '#8D6E63', '#E6A15C']
+      },
+      alebrije: {
+        name: 'Alebrije Festivo',
+        bg: '#0a0a14',
+        colors: ['#FF007F', '#00E5FF', '#76FF03', '#FFEA00', '#D500F9']
+      },
+      noche: {
+        name: 'Noche Mística',
+        bg: '#080811',
+        colors: ['#AB47BC', '#1E88E5', '#FF9800', '#00BCD4', '#FFD54F']
+      }
+    };
+
+    let activePaletteKey = 'tradicional';
+    let isMulticolorMode = true;
+    let isGlowEnabled = true;
+
+    // Motor de Animación de Trazos
+    let activeAnimationId = null;
+    let animationSpeed = 25;
+
+    function applyPathColors(paths) {
+      const palette = PALETTES[activePaletteKey].colors;
+      const customColor = $('#custom-stroke-color').val();
+
+      paths.forEach((path, idx) => {
+        if (isMulticolorMode) {
+          // Asignación armónica por sección/índice
+          const colorIndex = idx % palette.length;
+          path.style.stroke = palette[colorIndex];
+        } else {
+          path.style.stroke = customColor;
+        }
+      });
+
+      // Configurar variables CSS globales de resplandor y fondo
+      const mainColor = isMulticolorMode ? palette[0] : customColor;
+      document.documentElement.style.setProperty('--orange', mainColor);
+      document.documentElement.style.setProperty('--stroke-glow', mainColor + '66');
+      document.documentElement.style.setProperty('--bg-color', PALETTES[activePaletteKey].bg);
+    }
+
+    function drawSVGPaths(parentElement, timeDelay) {
+      if (activeAnimationId) {
+        cancelAnimationFrame(activeAnimationId);
+      }
+
+      const paths = $(parentElement).find('path').get();
+      $('#container').removeClass('glow-active');
+
+      // Aplicar paleta de colores
+      applyPathColors(paths);
+
+      // Ocultar trazos mediante strokeDashoffset
+      paths.forEach((path) => {
+        const length = path.getTotalLength();
+        path.style.strokeDasharray = `${length} ${length}`;
+        path.style.strokeDashoffset = length;
+        path.dataset.length = length;
+      });
+
+      let currentPathIndex = 0;
+      let startTime = null;
+      let pathDuration = Math.max(140, timeDelay * 7);
+
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+
+        if (currentPathIndex < paths.length) {
+          const path = paths[currentPathIndex];
+          const length = parseFloat(path.dataset.length);
+
+          if (length === 0) {
+            currentPathIndex++;
+            startTime = timestamp;
+            activeAnimationId = requestAnimationFrame(step);
+            return;
+          }
+
+          // Suavizado EaseInOutQuad
+          let progress = elapsed / pathDuration;
+          if (progress > 1) progress = 1;
+
+          let easeProgress = progress < 0.5 
+            ? 2 * progress * progress 
+            : -1 + (4 - 2 * progress) * progress;
+
+          const currentOffset = length * (1 - easeProgress);
+          path.style.strokeDashoffset = currentOffset;
+
+          if (progress < 1) {
+            activeAnimationId = requestAnimationFrame(step);
+          } else {
+            // Reproducir nota suave cada 3 trazos
+            if (currentPathIndex % 3 === 0) {
+              sound.playChime(250 + (currentPathIndex * 12) % 350);
+            }
+
+            currentPathIndex++;
+            startTime = timestamp;
+            activeAnimationId = requestAnimationFrame(step);
+          }
+        } else {
+          // Animación finalizada con éxito
+          if (isGlowEnabled) {
+            $('#container').addClass('glow-active');
+          }
+          sound.playCompletionSound();
+        }
+      }
+
+      activeAnimationId = requestAnimationFrame(step);
+    }
+
+    // Fondo animado de pétalos y chispas de azúcar
+    function initPetalCanvas() {
+      const canvas = document.getElementById('petal-canvas');
+      const ctx = canvas.getContext('2d');
+
+      let width = (canvas.width = window.innerWidth);
+      let height = (canvas.height = window.innerHeight);
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      const particles = Array.from({ length: 35 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height - height,
+        size: Math.random() * 6 + 3,
+        speedY: Math.random() * 1.2 + 0.4,
+        speedX: Math.random() * 0.8 - 0.4,
+        angle: Math.random() * Math.PI * 2,
+        isSugar: Math.random() > 0.6,
+        color: Math.random() > 0.3 ? '#E6A15C' : '#FFC107'
+      }));
+
+      function render() {
+        ctx.clearRect(0, 0, width, height);
+
+        particles.forEach((p) => {
+          p.y += p.speedY;
+          p.x += Math.sin(p.angle) * 0.6;
+          p.angle += 0.02;
+
+          if (p.y > height) {
+            p.y = -15;
+            p.x = Math.random() * width;
+          }
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle);
+
+          if (p.isSugar) {
+            // Chispas de azúcar blancas/doradas
+            ctx.fillStyle = '#FFF9E6';
+            ctx.fillRect(-p.size/2, -p.size/2, p.size * 0.8, p.size * 0.8);
+          } else {
+            // Pétalos de cempasúchil
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, p.size, p.size / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.restore();
+        });
+
+        requestAnimationFrame(render);
+      }
+
+      render();
+    }
+
+    // Inicialización y eventos UI
+    $(document).ready(function() {
+      const $svg = $('#bread-svg');
+
+      // Convertir formas geométricas a caminos SVG
+      convertAllToPaths($svg);
+
+      // Ocultar overlay de carga e iniciar
+      setTimeout(() => {
+        $('#loading-overlay').addClass('opacity-0 pointer-events-none');
+        drawSVGPaths($svg, animationSpeed);
+      }, 400);
+
+      // Iniciar efectos flotantes
+      initPetalCanvas();
+
+      // Evento de botón re-dibujar
+      $('#draw-btn').on('click', function() {
+        sound.init();
+        drawSVGPaths($svg, animationSpeed);
+      });
+
+      // Selección de velocidad
+      $('.speed-btn').on('click', function() {
+        $('.speed-btn')
+          .removeClass('bg-panGold text-mictlan font-bold')
+          .addClass('hover:bg-gray-700 text-gray-300 font-medium');
+
+        $(this)
+          .addClass('bg-panGold text-mictlan font-bold')
+          .removeClass('hover:bg-gray-700 text-gray-300 font-medium');
+
+        animationSpeed = parseInt($(this).data('speed'));
+        drawSVGPaths($svg, animationSpeed);
+      });
+
+      // Cambio de Paletas de Colores
+      $('.palette-btn').on('click', function() {
+        $('.palette-btn')
+          .removeClass('border-gold/50 bg-gold/20 text-gold')
+          .addClass('border-gray-700 text-gray-300');
+
+        $(this)
+          .addClass('border-gold/50 bg-gold/20 text-gold')
+          .removeClass('border-gray-700 text-gray-300');
+
+        activePaletteKey = $(this).data('palette');
+        drawSVGPaths($svg, animationSpeed);
+      });
+
+      // Alternar Modo Multicolor
+      $('#multicolor-mode').on('change', function() {
+        isMulticolorMode = $(this).is(':checked');
+        drawSVGPaths($svg, animationSpeed);
+      });
+
+      // Color Picker Personalizado
+      $('#custom-stroke-color').on('input', function() {
+        if (!isMulticolorMode) {
+          drawSVGPaths($svg, animationSpeed);
+        }
+      });
+
+      // Alternar Resplandor (Glow)
+      $('#glow-toggle-btn').on('click', function() {
+        isGlowEnabled = !isGlowEnabled;
+        if (isGlowEnabled) {
+          $(this).removeClass('bg-gray-700 text-gray-300').addClass('bg-panGold text-mictlan').text('ON');
+          $('#container').addClass('glow-active');
+        } else {
+          $(this).removeClass('bg-panGold text-mictlan').addClass('bg-gray-700 text-gray-300').text('OFF');
+          $('#container').removeClass('glow-active');
+        }
+      });
+
+      // Control de Efectos de Audio
+      $('#sound-btn').on('click', function() {
+        sound.init();
+        sound.enabled = !sound.enabled;
+
+        const $icon = $(this).find('i');
+        const $span = $(this).find('span');
+
+        if (sound.enabled) {
+          $icon.removeClass('fa-volume-xmark').addClass('fa-volume-high text-gold');
+          $span.text('Audio Activado');
+          sound.playChime(440.00, 0.2);
+        } else {
+          $icon.removeClass('fa-volume-high text-gold').addClass('fa-volume-xmark text-panGold');
+          $span.text('Efectos de Audio');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

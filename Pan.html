@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¡Decora tu Pan de Muerto! - Día de Muertos</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- jQuery CDN -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Rye & Fredoka -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Rye&display=swap" rel="stylesheet">
+<link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScmdEo7ZO8e7PfxmTQIAwBezdR3LBHSHKfFOEm19usGA&s=10">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            panGold: '#E6A15C',
+            azucarWhite: '#FFF9E6',
+            cempasuchil: '#FF5719',
+            gold: '#FFC107',
+            mictlan: '#1b1822',
+            papelPurple: '#8E24AA',
+            papelPink: '#E91E63',
+            papelCyan: '#00BCD4',
+          },
+          fontFamily: {
+            rye: ['Rye', 'serif'],
+            fredoka: ['Fredoka', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --orange: #E6A15C;
+      --stroke-glow: rgba(230, 161, 92, 0.4);
+      --bg-color: #120f17;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      font-family: 'Fredoka', sans-serif;
+      overflow-x: hidden;
+      color: #f3f4f6;
+    }
+
+    /* Papel Picado Banner Styling */
+    .papel-picado {
+      background: repeating-linear-gradient(
+        90deg,
+        #E91E63 0px, #E91E63 80px,
+        #FF5719 80px, #FF5719 160px,
+        #00BCD4 160px, #00BCD4 240px,
+        #8E24AA 240px, #8E24AA 320px,
+        #4CAF50 320px, #4CAF50 400px
+      );
+      clip-path: polygon(
+        0% 0%, 100% 0%, 100% 70%, 
+        95% 100%, 90% 70%, 85% 100%, 80% 70%, 75% 100%, 70% 70%, 65% 100%, 60% 70%,
+        55% 100%, 50% 70%, 45% 100%, 40% 70%, 35% 100%, 30% 70%, 25% 100%, 20% 70%,
+        15% 100%, 10% 70%, 5% 100%, 0% 70%
+      );
+    }
+
+    /* SVG Base & Path Styles */
+    #bread-svg {
+      max-height: 68vh;
+      width: auto;
+      margin: auto;
+      display: block;
+      filter: drop-shadow(0 0 14px var(--stroke-glow));
+      transition: filter 0.5s ease;
+    }
+
+    #bread-svg path {
+      fill: none;
+      stroke: var(--orange);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10;
+      transition: stroke 0.5s ease;
+    }
+
+    #bread-svg path.st-detail {
+      stroke-width: 2.5;
+    }
+
+    #bread-svg path.st-fine {
+      stroke-width: 1.5;
+      stroke-dasharray: 2 4;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1b1822;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #FF5719;
+      border-radius: 4px;
+    }
+
+    /* Glow animation for completed drawing */
+    .glow-active #bread-svg path {
+      animation: pulseGlow 2.5s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseGlow {
+      0% {
+        filter: drop-shadow(0 0 2px var(--orange));
+      }
+      100% {
+        filter: drop-shadow(0 0 10px var(--orange));
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center relative">
+
+  <!-- Background Animated Cempasúchil Petal & Sugar Dust Canvas -->
+  <canvas id="petal-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+  <!-- Papel Picado Top Banner -->
+  <header class="w-full relative z-10">
+    <div class="papel-picado h-12 w-full shadow-lg"></div>
+    <div class="text-center pt-4 pb-1 px-4">
+      <h1 class="font-rye text-3xl sm:text-5xl text-gold tracking-wide drop-shadow-[0_2px_10px_rgba(255,193,7,0.5)]">
+        ¡Pan de Muerto!
+      </h1>
+      <p class="text-gray-300 text-sm sm:text-base mt-1">Animación de Trazo e Ilustración Tradicional</p>
+    </div>
+  </header>
+
+  <!-- Main Display Container -->
+  <main class="w-full max-w-5xl px-4 flex flex-col items-center justify-center relative z-10 my-2">
+    
+    <!-- SVG Container -->
+    <div id="container" class="w-full flex justify-center items-center py-4 bg-mictlan/70 backdrop-blur-md rounded-3xl border border-gold/30 shadow-2xl relative overflow-hidden">
+      
+      <div id="loading-overlay" class="absolute inset-0 bg-mictlan/90 flex flex-col items-center justify-center z-20 transition-opacity duration-500">
+        <i class="fa-solid font-rye text-panGold text-5xl animate-bounce mb-3">🍞</i>
+        <p class="text-gold font-semibold text-lg">Horneando la tradición...</p>
+      </div>
+
+      <!-- Mexican Pan de Muerto Custom Vector Artwork -->
+      <svg id="bread-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" class="p-2">
+        <g id="Pan_De_Muerto">
+          
+          <!-- SECCIÓN 1: Fondo Decorativo Cempasúchil -->
+          <g id="Flores_Cempasuchil">
+            <!-- Flores alrededor del pan -->
+            <path d="M 100,120 Q 90,90 120,100 Q 140,80 150,110 Q 170,120 150,140 Q 140,160 120,150 Q 90,150 100,120 Z"/>
+            <path class="st-detail" d="M 120,120 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0"/>
+            <path d="M 500,120 Q 510,90 480,100 Q 460,80 450,110 Q 430,120 450,140 Q 460,160 480,150 Q 510,150 500,120 Z"/>
+            <path class="st-detail" d="M 480,120 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0"/>
+            <path d="M 80,480 Q 70,450 100,460 Q 120,440 130,470 Q 150,480 130,500 Q 120,520 100,510 Q 70,510 80,480 Z"/>
+            <path class="st-detail" d="M 105,480 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0"/>
+            <path d="M 520,480 Q 530,450 500,460 Q 480,440 470,470 Q 450,480 470,500 Q 480,520 500,510 Q 530,510 520,480 Z"/>
+            <path class="st-detail" d="M 495,480 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0"/>
+          </g>
+
+          <!-- SECCIÓN 2: Plato y Domo Base del Pan (El Cuerpo) -->
+          <g id="Base_Pan">
+            <!-- Plato barro tradicional -->
+            <ellipse cx="300" cy="460" rx="250" ry="60"/>
+            <ellipse cx="300" cy="460" rx="230" ry="50" class="st-detail"/>
+            
+            <!-- Domo Principal (Base del Pan) -->
+            <path d="M 100,430 C 90,320 140,200 300,190 C 460,200 510,320 500,430 C 420,475 180,475 100,430 Z"/>
+            <path class="st-detail" d="M 115,415 C 130,445 200,465 300,465 C 400,465 470,445 485,415"/>
+          </g>
+
+          <!-- SECCIÓN 3: Canillitas (Huesitos en Cruz) -->
+          <g id="Canillitas_Huesos">
+            <!-- Canilla Diagonal Izquierda-Superior a Derecha-Inferior -->
+            <path d="M 180,240 C 160,220 190,200 210,215 C 230,230 250,260 280,285 C 310,310 370,360 400,380 C 420,395 440,415 420,435 C 400,450 380,430 370,410 C 340,380 290,330 260,305 C 230,280 200,260 180,240 Z"/>
+            <!-- Esferas/Relieves del huesito diagonal 1 -->
+            <circle cx="210" cy="235" r="18"/>
+            <circle cx="380" cy="400" r="20"/>
+
+            <!-- Canilla Diagonal Derecha-Superior a Izquierda-Inferior -->
+            <path d="M 420,240 C 440,220 410,200 390,215 C 370,230 350,260 320,285 C 290,310 230,360 200,380 C 180,395 160,415 180,435 C 200,450 220,430 230,410 C 260,380 310,330 340,305 C 370,280 400,260 420,240 Z"/>
+            <!-- Esferas/Relieves del huesito diagonal 2 -->
+            <circle cx="390" cy="235" r="18"/>
+            <circle cx="220" cy="400" r="20"/>
+
+            <!-- Canilla Vertical Central -->
+            <path d="M 280,210 C 270,180 330,180 320,210 L 320,390 C 330,430 270,430 280,390 Z"/>
+            <circle cx="300" cy="230" r="16"/>
+            <circle cx="300" cy="380" r="18"/>
+          </g>
+
+          <!-- SECCIÓN 4: Bolita Central (El Cráneo / La Cúpula) -->
+          <g id="Bolita_Central">
+            <circle cx="300" cy="275" r="38"/>
+            <path class="st-detail" d="M 275,260 C 285,245 315,245 325,260 C 335,275 325,295 300,305 C 275,295 265,275 275,260 Z"/>
+            <circle cx="300" cy="275" r="16" class="st-detail"/>
+          </g>
+
+          <!-- SECCIÓN 5: Chispas de Azúcar y Textura de Ajonjolí -->
+          <g id="Azucar_Ajonjoli">
+            <!-- Destellos y granos de azúcar dispersos -->
+            <path class="st-detail" d="M 220,280 L 226,286 M 226,280 L 220,286"/>
+            <path class="st-detail" d="M 370,280 L 376,286 M 376,280 L 370,286"/>
+            <path class="st-detail" d="M 270,340 L 276,346 M 276,340 L 270,346"/>
+            <path class="st-detail" d="M 330,340 L 336,346 M 336,340 L 330,346"/>
+            <path class="st-detail" d="M 160,350 L 166,356 M 166,350 L 160,356"/>
+            <path class="st-detail" d="M 430,350 L 436,356 M 436,350 L 430,356"/>
+            <path class="st-detail" d="M 297,190 L 303,196 M 303,190 L 297,196"/>
+
+            <!-- Puntos de Azúcar fina -->
+            <circle cx="240" cy="220" r="3"/>
+            <circle cx="360" cy="220" r="3"/>
+            <circle cx="190" cy="300" r="3"/>
+            <circle cx="410" cy="300" r="3"/>
+            <circle cx="250" cy="380" r="3"/>
+            <circle cx="350" cy="380" r="3"/>
+            <circle cx="300" cy="430" r="3"/>
+            <circle cx="300" cy="155" r="4"/>
+          </g>
+
+          <!-- SECCIÓN 6: Letrero Tradicional -->
+          <g id="Texto_Tradicion">
+            <path class="st-detail" d="M 160,540 Q 300,560 440,540"/>
+            <path class="st-detail" d="M 200,555 Q 300,570 400,555"/>
+          </g>
+
+        </g>
+      </svg>
+    </div>
+
+    <!-- Dashboard de Control -->
+    <div class="w-full mt-4 bg-mictlan/80 backdrop-blur-md p-4 rounded-2xl border border-gold/30 shadow-xl flex flex-wrap gap-4 items-center justify-between">
+      
+      <!-- Botón Principal -->
+      <button id="draw-btn" class="bg-gradient-to-r from-panGold via-gold to-cempasuchil hover:from-cempasuchil hover:to-panGold text-mictlan font-bold px-6 py-3 rounded-xl shadow-lg transform active:scale-95 transition duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>¡ANIMAR PAN DE MUERTO!</span>
+      </button>
+
+      <!-- Selector de Paletas de Colores Mexicanas -->
+      <div class="flex flex-col gap-1 bg-black/40 px-3 py-2 rounded-xl border border-gray-700">
+        <span class="text-xs text-gold font-semibold uppercase flex items-center gap-1">
+          <i class="fa-solid fa-palette"></i> Paletas de Colores:
+        </span>
+        <div class="flex flex-wrap gap-1.5 mt-1">
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gold/50 bg-gold/20 text-gold font-medium hover:bg-gold/30 transition" data-palette="tradicional" title="Azúcar y Mantequilla - Tonos dorados, cálidos y blancos">
+            🍞 Pan Tradicional
+          </button>
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="cempasuchil" title="Naranja Cempasúchil, Púrpura y Dorado">
+            🌺 Cempasúchil & Terciopelo
+          </button>
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="chocolate" title="Chocolate Abuelita, Canela y Crema">
+            🍫 Chocolate & Canela
+          </button>
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="alebrije" title="Neón Vibrante: Magenta, Cian y Verde">
+            ⚡ Alebrije Neón
+          </button>
+          <button class="palette-btn text-xs px-2.5 py-1 rounded-lg border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition" data-palette="noche" title="Violeta Místico, Cian y Oro">
+            🌙 Noche de Muertos
+          </button>
+        </div>
+      </div>
+
+      <!-- Modo de Color y Selector Personalizado -->
+      <div class="flex items-center gap-3 bg-black/40 px-3 py-2 rounded-xl border border-gray-700">
+        <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-300 select-none">
+          <input type="checkbox" id="multicolor-mode" checked class="accent-panGold w-4 h-4 rounded">
+          <span>Multicolor por Secciones</span>
+        </label>
+        
+        <div class="h-4 w-px bg-gray-700"></div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-400">Trazo:</span>
+          <input type="color" id="custom-stroke-color" value="#E6A15C" class="w-7 h-7 rounded border-0 bg-transparent cursor-pointer shadow">
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-400">Glow:</span>
+          <button id="glow-toggle-btn" class="text-xs px-2 py-1 rounded bg-panGold text-mictlan font-bold">ON</button>
+        </div>
+      </div>
+
+      <!-- Selector de Velocidad -->
+      <div class="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-gray-700">
+        <span class="text-xs text-gray-400 font-semibold uppercase"><i class="fa-solid fa-gauge-high mr-1"></i>Velocidad:</span>
+        <button class="speed-btn px-2.5 py-1 text-xs rounded-lg bg-panGold text-mictlan font-bold" data-speed="25">Normal</button>
+        <button class="speed-btn px-2.5 py-1 text-xs rounded-lg hover:bg-gray-700 text-gray-300 font-medium" data-speed="10">Rápido</button>
+        <button class="speed-btn px-2.5 py-1 text-xs rounded-lg hover:bg-gray-700 text-gray-300 font-medium" data-speed="60">Lento</button>
+      </div>
+
+      <!-- Botón de Sonido -->
+      <button id="sound-btn" class="bg-black/40 hover:bg-black/60 text-gray-300 px-3 py-2 rounded-xl border border-gray-700 transition flex items-center gap-2 text-sm">
+        <i class="fa-solid fa-volume-xmark text-panGold"></i>
+        <span>Efectos de Audio</span>
+      </button>
+
+      <button id="draw-btn" class="bg-gradient-to-r from-cempasuchil to-gold hover:from-gold hover:to-cempasuchil text-mictlan font-bold px-6 py-3 rounded-xl shadow-lg transform active:scale-95 transition duration-200 flex items-center gap-2">
+       <a href="index.html">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>REGRESAR</span>
+        </a>
+      </button>
+    </div>
+
+  </main>
+
+  <!-- Pie de página -->
+  <footer class="w-full text-center py-3 text-xs text-gray-400 z-10">
+    <p>Tradición Mexicana de Día de Muertos • Pan de Muerto</p>
+  </footer>
+
+  <!-- Lógica de la Aplicación -->
+  <script>
+    // Sintetizador de Audio con Web Audio API para Efectos Festivos
+    class SoundSynth {
+      constructor() {
+        this.ctx = null;
+        this.enabled = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+      }
+
+      playChime(freq, duration = 0.15) {
+        if (!this.enabled || !this.ctx) return;
+        
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          console.log("Audio suprimido por el navegador");
+        }
+      }
+
+      playCompletionSound() {
+        if (!this.enabled || !this.ctx) return;
+        // Acorde cálido de guitarra / arpa
+        const notes = [293.66, 369.99, 440.00, 587.33, 739.99]; // D4, F#4, A4, D5, F#5
+        notes.forEach((freq, idx) => {
+          setTimeout(() => this.playChime(freq, 0.5), idx * 100);
+        });
+      }
+    }
+
+    const sound = new SoundSynth();
+
+    // Conversión dinámica de formas SVG a <path>
+    function SVG(tag) {
+      return document.createElementNS('http://www.w3.org/2000/svg', tag);
+    }
+
+    function replaceRectsWithPaths(parentElement) {
+      $(parentElement).find('rect').each(function() {
+        const x = parseFloat($(this).attr('x') || 0);
+        const y = parseFloat($(this).attr('y') || 0);
+        const w = parseFloat($(this).attr('width') || 0);
+        const h = parseFloat($(this).attr('height') || 0);
+        const d = `M${x},${y} L${x + w},${y} L${x + w},${y + h} L${x},${y + h} Z`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replaceLinesWithPaths(parentElement) {
+      $(parentElement).find('line').each(function() {
+        const x1 = $(this).attr('x1') || 0;
+        const y1 = $(this).attr('y1') || 0;
+        const x2 = $(this).attr('x2') || 0;
+        const y2 = $(this).attr('y2') || 0;
+        const d = `M${x1},${y1} L${x2},${y2}`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replaceCirclesWithPaths(parentElement) {
+      $(parentElement).find('circle').each(function() {
+        const cx = parseFloat($(this).attr('cx') || 0);
+        const cy = parseFloat($(this).attr('cy') || 0);
+        const r = parseFloat($(this).attr('r') || 0);
+        const r2 = r * 2;
+        const d = `M ${cx}, ${cy} m ${-r}, 0 a ${r},${r} 0 1,0 ${r2},0 a ${r},${r} 0 1,0 ${-r2},0`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replaceEllipsesWithPaths(parentElement) {
+      $(parentElement).find('ellipse').each(function() {
+        const cx = parseFloat($(this).attr('cx') || 0);
+        const cy = parseFloat($(this).attr('cy') || 0);
+        const rx = parseFloat($(this).attr('rx') || 0);
+        const ry = parseFloat($(this).attr('ry') || 0);
+        const d = `M ${cx}, ${cy} m ${-rx}, 0 a ${rx},${ry} 0 1,0 ${rx * 2},0 a ${rx},${ry} 0 1,0 ${-rx * 2},0`;
+
+        $(SVG('path'))
+          .attr('d', d)
+          .attr('class', $(this).attr('class') || '')
+          .insertAfter(this);
+        $(this).remove();
+      });
+    }
+
+    function replacePolygonsWithPaths(parentElement) {
+      $(parentElement).find('polygon').each(function() {
+        const points = $(this).attr('points');
+        if (points) {
+          const d = `M ${points} Z`;
+          $(SVG('path'))
+            .attr('d', d)
+            .attr('class', $(this).attr('class') || '')
+            .insertAfter(this);
+        }
+        $(this).remove();
+      });
+    }
+
+    function replacePolylinesWithPaths(parentElement) {
+      $(parentElement).find('polyline').each(function() {
+        const points = $(this).attr('points');
+        if (points) {
+          const d = `M ${points}`;
+          $(SVG('path'))
+            .attr('d', d)
+            .attr('class', $(this).attr('class') || '')
+            .insertAfter(this);
+        }
+        $(this).remove();
+      });
+    }
+
+    function convertAllToPaths(svgElement) {
+      replaceRectsWithPaths(svgElement);
+      replaceLinesWithPaths(svgElement);
+      replaceEllipsesWithPaths(svgElement);
+      replaceCirclesWithPaths(svgElement);
+      replacePolygonsWithPaths(svgElement);
+      replacePolylinesWithPaths(svgElement);
+    }
+
+    // Definición de Paletas Temáticas Mexicanas
+    const PALETTES = {
+      tradicional: {
+        name: 'Pan Tradicional (Azúcar & Mantequilla)',
+        bg: '#141018',
+        colors: ['#FFC107', '#E6A15C', '#FFF9E6', '#D97706', '#FF8C00']
+      },
+      cempasuchil: {
+        name: 'Cempasúchil & Terciopelo',
+        bg: '#160d1a',
+        colors: ['#FF5719', '#FFC107', '#E91E63', '#9C27B0', '#FF8A65']
+      },
+      chocolate: {
+        name: 'Chocolate & Canela',
+        bg: '#120a08',
+        colors: ['#D97706', '#8D6E63', '#4E342E', '#FFB74D', '#FFF3E0']
+      },
+      alebrije: {
+        name: 'Alebrije Neón',
+        bg: '#0a0a14',
+        colors: ['#FF007F', '#00E5FF', '#76FF03', '#FFEA00', '#D500F9']
+      },
+      noche: {
+        name: 'Noche de Muertos',
+        bg: '#080811',
+        colors: ['#AB47BC', '#1E88E5', '#FF9800', '#00BCD4', '#FFD54F']
+      }
+    };
+
+    let activePaletteKey = 'tradicional';
+    let isMulticolorMode = true;
+    let isGlowEnabled = true;
+
+    // Motor de Animación de Trazos
+    let activeAnimationId = null;
+    let animationSpeed = 25;
+
+    function applyPathColors(paths) {
+      const palette = PALETTES[activePaletteKey].colors;
+      const customColor = $('#custom-stroke-color').val();
+
+      paths.forEach((path, idx) => {
+        if (isMulticolorMode) {
+          // Asignación armónica por sección/índice
+          const colorIndex = idx % palette.length;
+          path.style.stroke = palette[colorIndex];
+        } else {
+          path.style.stroke = customColor;
+        }
+      });
+
+      // Configurar variables CSS globales de resplandor y fondo
+      const mainColor = isMulticolorMode ? palette[0] : customColor;
+      document.documentElement.style.setProperty('--orange', mainColor);
+      document.documentElement.style.setProperty('--stroke-glow', mainColor + '66');
+      document.documentElement.style.setProperty('--bg-color', PALETTES[activePaletteKey].bg);
+    }
+
+    function drawSVGPaths(parentElement, timeDelay) {
+      if (activeAnimationId) {
+        cancelAnimationFrame(activeAnimationId);
+      }
+
+      const paths = $(parentElement).find('path').get();
+      $('#container').removeClass('glow-active');
+
+      // Aplicar paleta de colores
+      applyPathColors(paths);
+
+      // Ocultar trazos mediante strokeDashoffset
+      paths.forEach((path) => {
+        const length = path.getTotalLength();
+        path.style.strokeDasharray = `${length} ${length}`;
+        path.style.strokeDashoffset = length;
+        path.dataset.length = length;
+      });
+
+      let currentPathIndex = 0;
+      let startTime = null;
+      let pathDuration = Math.max(140, timeDelay * 7);
+
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+
+        if (currentPathIndex < paths.length) {
+          const path = paths[currentPathIndex];
+          const length = parseFloat(path.dataset.length);
+
+          if (length === 0) {
+            currentPathIndex++;
+            startTime = timestamp;
+            activeAnimationId = requestAnimationFrame(step);
+            return;
+          }
+
+          // Suavizado EaseInOutQuad
+          let progress = elapsed / pathDuration;
+          if (progress > 1) progress = 1;
+
+          let easeProgress = progress < 0.5 
+            ? 2 * progress * progress 
+            : -1 + (4 - 2 * progress) * progress;
+
+          const currentOffset = length * (1 - easeProgress);
+          path.style.strokeDashoffset = currentOffset;
+
+          if (progress < 1) {
+            activeAnimationId = requestAnimationFrame(step);
+          } else {
+            // Reproducir nota suave cada 3 trazos
+            if (currentPathIndex % 3 === 0) {
+              sound.playChime(250 + (currentPathIndex * 12) % 350);
+            }
+
+            currentPathIndex++;
+            startTime = timestamp;
+            activeAnimationId = requestAnimationFrame(step);
+          }
+        } else {
+          // Animación finalizada con éxito
+          if (isGlowEnabled) {
+            $('#container').addClass('glow-active');
+          }
+          sound.playCompletionSound();
+        }
+      }
+
+      activeAnimationId = requestAnimationFrame(step);
+    }
+
+    // Fondo animado de pétalos y chispas de azúcar
+    function initPetalCanvas() {
+      const canvas = document.getElementById('petal-canvas');
+      const ctx = canvas.getContext('2d');
+
+      let width = (canvas.width = window.innerWidth);
+      let height = (canvas.height = window.innerHeight);
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      const particles = Array.from({ length: 35 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height - height,
+        size: Math.random() * 6 + 3,
+        speedY: Math.random() * 1.2 + 0.4,
+        speedX: Math.random() * 0.8 - 0.4,
+        angle: Math.random() * Math.PI * 2,
+        isSugar: Math.random() > 0.6,
+        color: Math.random() > 0.3 ? '#E6A15C' : '#FFC107'
+      }));
+
+      function render() {
+        ctx.clearRect(0, 0, width, height);
+
+        particles.forEach((p) => {
+          p.y += p.speedY;
+          p.x += Math.sin(p.angle) * 0.6;
+          p.angle += 0.02;
+
+          if (p.y > height) {
+            p.y = -15;
+            p.x = Math.random() * width;
+          }
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle);
+
+          if (p.isSugar) {
+            // Chispas de azúcar blancas/doradas
+            ctx.fillStyle = '#FFF9E6';
+            ctx.fillRect(-p.size/2, -p.size/2, p.size * 0.8, p.size * 0.8);
+          } else {
+            // Pétalos de cempasúchil
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, p.size, p.size / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.restore();
+        });
+
+        requestAnimationFrame(render);
+      }
+
+      render();
+    }
+
+    // Inicialización y eventos UI
+    $(document).ready(function() {
+      const $svg = $('#bread-svg');
+
+      // Convertir formas geométricas a caminos SVG
+      convertAllToPaths($svg);
+
+      // Ocultar overlay de carga e iniciar
+      setTimeout(() => {
+        $('#loading-overlay').addClass('opacity-0 pointer-events-none');
+        drawSVGPaths($svg, animationSpeed);
+      }, 400);
+
+      // Iniciar efectos flotantes
+      initPetalCanvas();
+
+      // Evento de botón re-dibujar
+      $('#draw-btn').on('click', function() {
+        sound.init();
+        drawSVGPaths($svg, animationSpeed);
+      });
+
+      // Selección de velocidad
+      $('.speed-btn').on('click', function() {
+        $('.speed-btn')
+          .removeClass('bg-panGold text-mictlan font-bold')
+          .addClass('hover:bg-gray-700 text-gray-300 font-medium');
+
+        $(this)
+          .addClass('bg-panGold text-mictlan font-bold')
+          .removeClass('hover:bg-gray-700 text-gray-300 font-medium');
+
+        animationSpeed = parseInt($(this).data('speed'));
+        drawSVGPaths($svg, animationSpeed);
+      });
+
+      // Cambio de Paletas de Colores
+      $('.palette-btn').on('click', function() {
+        $('.palette-btn')
+          .removeClass('border-gold/50 bg-gold/20 text-gold')
+          .addClass('border-gray-700 text-gray-300');
+
+        $(this)
+          .addClass('border-gold/50 bg-gold/20 text-gold')
+          .removeClass('border-gray-700 text-gray-300');
+
+        activePaletteKey = $(this).data('palette');
+        drawSVGPaths($svg, animationSpeed);
+      });
+
+      // Alternar Modo Multicolor
+      $('#multicolor-mode').on('change', function() {
+        isMulticolorMode = $(this).is(':checked');
+        drawSVGPaths($svg, animationSpeed);
+      });
+
+      // Color Picker Personalizado
+      $('#custom-stroke-color').on('input', function() {
+        if (!isMulticolorMode) {
+          drawSVGPaths($svg, animationSpeed);
+        }
+      });
+
+      // Alternar Resplandor (Glow)
+      $('#glow-toggle-btn').on('click', function() {
+        isGlowEnabled = !isGlowEnabled;
+        if (isGlowEnabled) {
+          $(this).removeClass('bg-gray-700 text-gray-300').addClass('bg-panGold text-mictlan').text('ON');
+          $('#container').addClass('glow-active');
+        } else {
+          $(this).removeClass('bg-panGold text-mictlan').addClass('bg-gray-700 text-gray-300').text('OFF');
+          $('#container').removeClass('glow-active');
+        }
+      });
+
+      // Control de Efectos de Audio
+      $('#sound-btn').on('click', function() {
+        sound.init();
+        sound.enabled = !sound.enabled;
+
+        const $icon = $(this).find('i');
+        const $span = $(this).find('span');
+
+        if (sound.enabled) {
+          $icon.removeClass('fa-volume-xmark').addClass('fa-volume-high text-gold');
+          $span.text('Audio Activado');
+          sound.playChime(440.00, 0.2);
+        } else {
+          $icon.removeClass('fa-volume-high text-gold').addClass('fa-volume-xmark text-panGold');
+          $span.text('Efectos de Audio');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
